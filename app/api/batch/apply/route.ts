@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEntries, saveEntries, addEntry } from "@/lib/storage";
-import type { Entry, EntryType, Domain } from "@/lib/types";
+import { appendCohort } from "@/lib/history-storage";
+import type { Entry, EntryType, Domain, TargetingCohort } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,26 @@ export async function POST(req: NextRequest) {
   const entries = await getEntries();
   const selectedNames = new Set(body.selected.map((s) => normalize(s.name)));
 
+  // STEP 1: Capture the current targeting cohort BEFORE we demote them.
+  // This is what gives us the historical record.
+  const currentTargets = entries.filter((e) => e.status === "targeting");
+  if (currentTargets.length > 0) {
+    const cohort: TargetingCohort = {
+      id: `cohort-${Date.now()}`,
+      archivedAt: Date.now(),
+      entries: currentTargets.map((e) => ({
+        name: e.name,
+        type: e.type,
+        domain: e.domain,
+        targetedAt: e.targetedAt,
+      })),
+      note: `${currentTargets.length} entries archived as part of batch apply`,
+    };
+    await appendCohort(cohort);
+  }
+
+  const now = Date.now();
+
   const report = {
     demoted_to_tried: [] as string[],
     promoted_to_targeting: [] as string[],
@@ -42,15 +63,15 @@ export async function POST(req: NextRequest) {
 
   // Pass 1: walk existing entries
   const updated: Entry[] = entries.map((e) => {
-    // Old targeting → tried (auto-mark as tried per user setting)
+    // Old targeting → tried
     if (e.status === "targeting") {
       report.demoted_to_tried.push(e.name);
       return { ...e, status: "tried" as const };
     }
-    // Selected entries that already exist → promote to targeting
+    // Selected entries that already exist → promote to targeting (stamp date)
     if (selectedNames.has(normalize(e.name)) && e.status !== "blacklisted") {
       report.promoted_to_targeting.push(e.name);
-      return { ...e, status: "targeting" as const };
+      return { ...e, status: "targeting" as const, targetedAt: now };
     }
     return e;
   });
@@ -61,12 +82,18 @@ export async function POST(req: NextRequest) {
   const existingNames = new Set(updated.map((e) => normalize(e.name)));
   for (const sel of body.selected) {
     if (!existingNames.has(normalize(sel.name))) {
-      await addEntry({
+      const newEntry = await addEntry({
         name: sel.name,
         status: "targeting",
         type: sel.type,
         domain: sel.domain,
       });
+      // Stamp targetedAt on the brand-new entry by updating it
+      const all = await getEntries();
+      const updated2 = all.map((e) =>
+        e.id === newEntry.id ? { ...e, targetedAt: now } : e
+      );
+      await saveEntries(updated2);
       report.added_new.push(sel.name);
     }
   }

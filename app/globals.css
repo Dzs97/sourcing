@@ -1325,3 +1325,122 @@ select.filter-chip {
   text-align: center;
   font-style: italic;
 }
+
+/* MASTHEAD ACTION BUTTON & RIGHT-SIDE LAYOUT */
+.masthead-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.masthead-action {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-soft);
+  transition: all 0.15s;
+  letter-spacing: -0.01em;
+}
+
+.masthead-action:hover {
+  border-color: var(--text);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 768px) {
+  .masthead-right {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+}
+
+/* HISTORY MODAL */
+.history-empty {
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--text-soft);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.history-empty p {
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.history-list {
+  padding: 8px 0;
+}
+
+.history-cohort {
+  margin: 0 24px 16px;
+  padding: 16px;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+}
+
+.history-cohort-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.history-cohort-date {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.history-cohort-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-fade);
+}
+
+.history-cohort-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-domain {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.history-domain-name {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-fade);
+  flex-shrink: 0;
+  min-width: 130px;
+  padding-top: 2px;
+}
+
+.history-domain-list {
+  color: var(--text-soft);
+  flex: 1;
+}
+
+/* Make the export buttons look like primary actions inside the footer */
+.modal-footer a.modal-btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}

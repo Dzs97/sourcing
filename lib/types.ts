@@ -25,6 +25,31 @@ export interface Entry {
   domain: Domain;
   notes?: string;
   addedAt: number;
+  /**
+   * Timestamp of the most recent time this entry was promoted to "targeting".
+   * Optional because legacy entries may not have it.
+   */
+  targetedAt?: number;
+}
+
+/**
+ * A snapshot of a batch of entries that were targeted together.
+ * Captured at the moment "Apply batch" runs (before demotion).
+ */
+export interface TargetingCohort {
+  id: string;
+  /** When this cohort was archived — i.e. when its members got demoted to "tried". */
+  archivedAt: number;
+  /** Names of entries that were in this cohort. */
+  entries: Array<{
+    name: string;
+    type: EntryType;
+    domain: Domain;
+    /** When this entry first joined the cohort, if known. */
+    targetedAt?: number;
+  }>;
+  /** Optional summary written by the user or generated automatically. */
+  note?: string;
 }
 
 export interface Suggestion {

@@ -6,6 +6,7 @@ import type {
   Status,
   EntryType,
   Domain,
+  TargetingCohort,
 } from "@/lib/types";
 import {
   DOMAIN_LABELS,
@@ -55,6 +56,23 @@ export default function Home() {
   const [selectedCandidates, setSelectedCandidates] = useState<Set<string>>(
     new Set()
   );
+
+  // History modal state
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [history, setHistory] = useState<TargetingCohort[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  async function openHistoryModal() {
+    setHistoryModalOpen(true);
+    setHistoryLoading(true);
+    try {
+      const res = await fetch("/api/history");
+      const data = await res.json();
+      setHistory(data.history ?? []);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }
 
   async function loadEntries() {
     const res = await fetch("/api/pools");
@@ -245,19 +263,28 @@ export default function Home() {
     <main className="shell">
       <header className="masthead">
         <h1 className="masthead-title">Sourcing Tracker</h1>
-        <div className="masthead-meta">
-          <span className="masthead-meta-item">
-            <strong>{counts.total}</strong> total
-          </span>
-          <span className="masthead-meta-item">
-            <strong>{counts.tried}</strong> tried
-          </span>
-          <span className="masthead-meta-item">
-            <strong>{counts.new}</strong> new
-          </span>
-          <span className="masthead-meta-item">
-            <strong>{counts.blacklisted}</strong> blacklisted
-          </span>
+        <div className="masthead-right">
+          <div className="masthead-meta">
+            <span className="masthead-meta-item">
+              <strong>{counts.total}</strong> total
+            </span>
+            <span className="masthead-meta-item">
+              <strong>{counts.tried}</strong> tried
+            </span>
+            <span className="masthead-meta-item">
+              <strong>{counts.new}</strong> new
+            </span>
+            <span className="masthead-meta-item">
+              <strong>{counts.blacklisted}</strong> blacklisted
+            </span>
+          </div>
+          <button
+            className="masthead-action"
+            onClick={openHistoryModal}
+            title="View targeting history & export"
+          >
+            History & export
+          </button>
         </div>
       </header>
 
@@ -675,6 +702,129 @@ export default function Home() {
         </div>
       )}
       </>
+      )}
+
+      {/* HISTORY & EXPORT MODAL — accessible from both tabs */}
+      {historyModalOpen && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setHistoryModalOpen(false)}
+        >
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <div>
+                <div className="modal-title">Targeting history & export</div>
+                <div className="modal-sub">
+                  {historyLoading
+                    ? "Loading history…"
+                    : history.length === 0
+                    ? "No archived cohorts yet"
+                    : `${history.length} archived ${
+                        history.length === 1 ? "cohort" : "cohorts"
+                      }`}
+                </div>
+              </div>
+              <button
+                className="modal-close"
+                onClick={() => setHistoryModalOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {historyLoading && (
+                <div className="modal-loading">
+                  <div className="spinner" />
+                </div>
+              )}
+
+              {!historyLoading && history.length === 0 && (
+                <div className="history-empty">
+                  <p>
+                    Targeting cohorts are recorded automatically when you click{" "}
+                    <strong>Apply batch</strong> on a generated batch.
+                  </p>
+                  <p>
+                    Each time you finish a sourcing cycle and move to a new
+                    batch, the previous cohort is archived here with the date.
+                  </p>
+                  <p>
+                    You can still export your current state below.
+                  </p>
+                </div>
+              )}
+
+              {!historyLoading && history.length > 0 && (
+                <div className="history-list">
+                  {history.map((cohort) => {
+                    const date = new Date(cohort.archivedAt);
+                    const dateStr = date.toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    });
+                    // Group entries by domain
+                    const groups: Record<string, typeof cohort.entries> = {};
+                    for (const e of cohort.entries) {
+                      const k = DOMAIN_LABELS[e.domain];
+                      groups[k] = groups[k] ?? [];
+                      groups[k].push(e);
+                    }
+                    return (
+                      <div key={cohort.id} className="history-cohort">
+                        <div className="history-cohort-head">
+                          <div className="history-cohort-date">{dateStr}</div>
+                          <div className="history-cohort-count">
+                            {cohort.entries.length} entries archived
+                          </div>
+                        </div>
+                        <div className="history-cohort-body">
+                          {Object.entries(groups)
+                            .sort((a, b) => b[1].length - a[1].length)
+                            .map(([domain, items]) => (
+                              <div key={domain} className="history-domain">
+                                <span className="history-domain-name">
+                                  {domain}
+                                </span>
+                                <span className="history-domain-list">
+                                  {items.map((i) => i.name).join(", ")}
+                                </span>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <a
+                href="/api/export/csv"
+                download
+                className="modal-btn ghost"
+              >
+                ↓ Export CSV
+              </a>
+              <a
+                href="/api/export/markdown"
+                download
+                className="modal-btn ghost"
+              >
+                ↓ Export Markdown
+              </a>
+              <div style={{ flex: 1 }} />
+              <button
+                className="modal-btn primary"
+                onClick={() => setHistoryModalOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

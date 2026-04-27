@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
     type: body.type,
     domain: body.domain,
     notes: body.notes,
+    // Stamp date if entry is being created directly as a target
+    targetedAt: body.status === "targeting" ? Date.now() : undefined,
   });
   return NextResponse.json({ entry });
 }
