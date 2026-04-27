@@ -1,15 +1,8 @@
-# Sourcing Dossier
+# Sourcing Tracker
 
-Personal recruiting ops tracker. Tracks which talent pools you've **tried**, which you're **targeting**, which are in the **new** pool waiting for review, and which are **blacklisted**. The targeting list is featured at the top. When you've worked through it, hit **Generate next batch** — Claude analyzes your patterns and proposes a fresh batch of candidates.
+Personal recruiting ops tracker. Tracks talent pools you've **tried**, are **targeting**, have in your **new** pool, or have **blacklisted**. The targeting list is featured at the top. When you've worked through it, hit **Generate next batch** — Claude analyzes your patterns and proposes a fresh batch of candidates.
 
-## Stack
-
-- Next.js 15 (App Router) + React 19
-- Upstash Redis for storage (Vercel free tier)
-- Anthropic API for batch generation
-- TypeScript, hand-written CSS in editorial dossier aesthetic
-
-## Local development
+## Quick start
 
 ```bash
 npm install
@@ -24,7 +17,44 @@ Without env credentials, the app uses an in-memory store seeded from `lib/seed.t
 2. Import into Vercel.
 3. **Storage** → Marketplace → **Upstash Redis** → connect to project. Env vars (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`) auto-inject.
 4. **Project Settings** → **Environment Variables** → add `ANTHROPIC_API_KEY` from https://console.anthropic.com/settings/keys
-5. Redeploy. First load seeds the database from `lib/seed.ts`.
+5. Redeploy.
+
+## Cross-device data persistence
+
+**This is critical.** Whether your data persists across devices and users depends entirely on whether Upstash Redis is connected.
+
+| Scenario | What happens |
+|---|---|
+| Upstash IS connected | All visitors (any device, any browser) see the same shared dataset. Changes save immediately. |
+| Upstash IS NOT connected | Each Vercel serverless instance keeps its own ephemeral copy. Different visitors may see different data. Data resets when functions cold-start. |
+
+**To verify your setup:** visit `https://your-app.vercel.app/api/health` after deploying. The response tells you exactly which mode you're in:
+
+```json
+{
+  "status": "OK",
+  "storage": {
+    "mode": "persistent (Upstash Redis)",
+    "reachable": true,
+    "entry_count": 250,
+    "upstash_url_set": true,
+    "upstash_token_set": true
+  },
+  "llm": {
+    "anthropic_key_set": true,
+    "note": "Generate next batch will work"
+  },
+  "cross_device_sharing": "ENABLED — all visitors see the same data"
+}
+```
+
+If `cross_device_sharing` says **DISABLED**, you need to:
+1. Go to your Vercel project → **Storage** tab
+2. Click **Marketplace** → search **Upstash Redis** → **Add integration**
+3. Connect it to this project. Vercel auto-injects the env vars.
+4. Redeploy.
+
+After that, hit `/api/health` again to confirm.
 
 ## Status model
 
@@ -37,22 +67,22 @@ Without env credentials, the app uses an in-memory store seeded from `lib/seed.t
 
 ## Generate next batch (LLM-powered)
 
-Click **↻ Generate next batch** in the top dark block.
+Click **↻ Generate next batch** in the dark featured block.
 
 1. Claude reads your full sourcing state (tried, targeting, blacklisted, new pool).
 2. It proposes 30 candidates with a one-line reason for each.
-3. You review the list, uncheck any you don't want, click **Apply**.
+3. You review and uncheck any you don't want, then click **Apply**.
 4. Old targeting entries → marked `tried`. Selected candidates → promoted to `targeting`.
 
 Tags:
 - **NEW** badge means Claude proposed a brand-new entry not in your DB. It'll be added.
 - No badge means it was already in your `new` pool, just being promoted.
 
-The first call typically takes 20–40 seconds (Claude is reasoning over your full history).
+The first call typically takes 20–40 seconds.
 
 ## Reset targeting list to canonical 39
 
-After deploy, GET `/api/admin/reset-targeting` for a dry run, then POST to apply. Forces your targeting list to exactly match the canonical 39 from the seed file.
+After deploy, GET `/api/admin/reset-targeting` for a dry run, then POST to apply.
 
 ## Manual admin actions
 
@@ -62,3 +92,4 @@ After deploy, GET `/api/admin/reset-targeting` for a dry run, then POST to apply
 - **`POST /api/admin/reset-targeting`** — sync targeting to canonical seed
 - **`POST /api/batch/generate`** — get LLM candidates (no DB mutation)
 - **`POST /api/batch/apply`** — promote selected candidates, demote old targets
+- **`GET /api/health`** — verify storage and LLM config
