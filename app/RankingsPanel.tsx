@@ -10,6 +10,43 @@ import type {
 } from "@/lib/rankings-types";
 import { HIGH_SCORE_THRESHOLD, OVERDUE_DAYS } from "@/lib/rankings-types";
 
+// Threshold above which a Rankings company is considered "already tried"
+// regardless of whether it's in the user's tracker. 10+ votes means the team
+// has effectively mined the company, even if no one added it to the tracker.
+const TRIED_VOTE_THRESHOLD = 10;
+
+// Aliases between the rankings sheet and the tracker. Maps the rankings name
+// (left) to the canonical tracker name (right). Used to avoid double-counting
+// the same company under different naming conventions.
+const RANKINGS_ALIASES: Record<string, string> = {
+  "Anduril Industries": "Anduril",
+  Cursor: "Cursor (Anysphere)",
+  Anysphere: "Cursor (Anysphere)",
+  Codeium: "Codeium / Windsurf",
+  Windsurf: "Codeium / Windsurf",
+  "Sentry (sentry.io)": "Sentry",
+  "Snap Inc.": "Snap",
+  "Perplexity AI": "Perplexity",
+  "Temporal Technologies": "Temporal",
+  "Bloomberg LP": "Bloomberg",
+  "Amazon Web Services (AWS)": "AWS",
+  Nvidia: "NVIDIA",
+  "Massachusetts Institute of Technology": "MIT",
+  "Stanford University": "Stanford",
+  "Princeton University": "Princeton",
+  "Columbia University": "Columbia",
+  "Yale University": "Yale",
+  "Brown University": "Brown",
+  "Duke University": "Duke",
+  "Rice University": "Rice",
+  "Cornell University": "Cornell",
+  "University of Waterloo": "Waterloo",
+};
+
+function canonicalizeRankingName(name: string): string {
+  return RANKINGS_ALIASES[name] ?? name;
+}
+
 type Tab = "all" | "mine" | "untried";
 type SortKey = "rank" | "score" | "votes" | "superstar" | "recency";
 
@@ -50,6 +87,18 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
     return m;
   }, [entries]);
 
+  // Helper: given a Rankings row, look up the matching tracker entry
+  // (using the alias map so "Anduril Industries" matches "Anduril")
+  const lookupEntry = (companyName: string): Entry | undefined => {
+    const direct = entriesByName.get(companyName.toLowerCase());
+    if (direct) return direct;
+    const canonical = canonicalizeRankingName(companyName);
+    if (canonical !== companyName) {
+      return entriesByName.get(canonical.toLowerCase());
+    }
+    return undefined;
+  };
+
   // Index recency by company for quick lookup
   const recencyByCompany = useMemo(() => {
     const m = new Map<string, RecencyRecord>();
@@ -66,12 +115,15 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
 
     // Apply tab filter
     if (tab === "mine") {
-      base = base.filter((r) => entriesByName.has(r.company.toLowerCase()));
+      base = base.filter((r) => lookupEntry(r.company) !== undefined);
     } else if (tab === "untried") {
+      // Genuinely untried: high score, low vote count (sample size below the
+      // "implicitly tried" threshold), and not in the user's tracker
       base = base.filter(
         (r) =>
           r.total_score >= HIGH_SCORE_THRESHOLD &&
-          !entriesByName.has(r.company.toLowerCase())
+          r.total_votes < TRIED_VOTE_THRESHOLD &&
+          lookupEntry(r.company) === undefined
       );
     }
 
@@ -114,9 +166,12 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
     let gold = 0;
     for (const r of bundle.rankings) {
       if (r.superstar > 2) gold++;
-      if (entriesByName.has(r.company.toLowerCase())) {
+      if (lookupEntry(r.company) !== undefined) {
         mine++;
-      } else if (r.total_score >= HIGH_SCORE_THRESHOLD) {
+      } else if (
+        r.total_score >= HIGH_SCORE_THRESHOLD &&
+        r.total_votes < TRIED_VOTE_THRESHOLD
+      ) {
         untried++;
       }
     }
@@ -310,7 +365,7 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
           {tab === "mine"
             ? "Companies in your tracker"
             : tab === "untried"
-            ? `Score ≥ ${HIGH_SCORE_THRESHOLD}, not yet tracked`
+            ? `Score ≥ ${HIGH_SCORE_THRESHOLD}, votes < ${TRIED_VOTE_THRESHOLD}, not yet tracked`
             : "All ranked companies"}
         </div>
         <div className="archive-section-count">
@@ -338,10 +393,11 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
             </thead>
             <tbody>
               {rows.slice(0, 200).map((r) => {
-                const entry = entriesByName.get(r.company.toLowerCase());
+                const entry = lookupEntry(r.company);
                 const recency = recencyByCompany.get(r.company.toLowerCase());
                 const isOverdue = recency && recency.days_ago >= OVERDUE_DAYS;
                 const isHighScore = r.total_score >= HIGH_SCORE_THRESHOLD;
+                const isImplicitlyTried = r.total_votes >= TRIED_VOTE_THRESHOLD;
                 const isGold = r.superstar > 2;
 
                 return (
@@ -367,6 +423,13 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
                       {entry ? (
                         <span className={`status-pill ${entry.status}`}>
                           {STATUS_LABELS[entry.status]}
+                        </span>
+                      ) : isImplicitlyTried ? (
+                        <span
+                          className="status-pill tried"
+                          title={`${r.total_votes} votes — implicitly tried`}
+                        >
+                          tried (implicit)
                         </span>
                       ) : (
                         <span className="rk-no-entry">not tracked</span>

@@ -57,13 +57,22 @@ ${summarize(newPool)}`;
   if (!rankings) return baseContext;
 
   // Build a ranked-companies context — companies the user has historically
-  // had quality outcomes from. Score = +5/superstar, +2/yes, +1/maybe, -1/no.
-  // Show top 60 ranked companies with quality signals.
+  // Quality signal — top ranked companies from past candidate decisions.
+  // Score = +5/superstar, +2/yes, +1/maybe, -1/no.
+  // Companies with 10+ votes are treated as implicitly mined regardless of
+  // whether they're in the user's tracker. The LLM should not suggest these.
+  const TRIED_VOTE_THRESHOLD = 10;
   const triedNames = new Set([...tried, ...targeting, ...blacklisted].map((e) => e.name.toLowerCase()));
   const topRanked = rankings.rankings
     .slice(0, 60)
     .map((r) => {
-      const status = triedNames.has(r.company.toLowerCase()) ? "ALREADY-MINED" : "untried";
+      const inTracker = triedNames.has(r.company.toLowerCase());
+      const implicitlyTried = r.total_votes >= TRIED_VOTE_THRESHOLD;
+      const status = inTracker
+        ? "ALREADY-MINED"
+        : implicitlyTried
+        ? "IMPLICITLY-MINED (10+ votes)"
+        : "untested";
       const stars = r.superstar > 0 ? ` ★${r.superstar}` : "";
       return `  ${r.company} [score=${r.total_score}${stars}, votes=${r.total_votes}, ${status}]`;
     })
@@ -80,6 +89,7 @@ ${summarize(newPool)}`;
 
 ## QUALITY SIGNAL — TOP RANKED COMPANIES (from past candidate decisions)
 Score = (+5)·superstar + (+2)·yes + (+1)·maybe + (-1)·no. Higher = better historical hit rate.
+A company with 10+ votes has been effectively mined even if it's not formally in TRIED.
 Source as of ${rankings.source_as_of ?? "unknown"}.
 ${topRanked}
 
@@ -89,7 +99,7 @@ ${overdueRanked || "  none"}`;
 
 const SYSTEM_PROMPT = `You are an elite recruiting strategist helping a user identify the next batch of engineering talent pools (companies, schools, communities, competitions) to source from.
 
-The user is recruiting strong engineers for a US-based AI-powered dermatology platform. They have already mined certain pools heavily and are looking for adjacent pools that share talent characteristics.
+The user is recruiting strong engineers for a US-based startup called Need. They have already mined certain pools heavily and are looking for adjacent pools that share talent characteristics.
 
 Your job: based on the user's engagement patterns (what they've TRIED and what they're currently TARGETING), suggest exactly 30 NEW pools to target next. Each suggestion needs:
 - name: the canonical name of the company/school/community/competition
@@ -106,6 +116,7 @@ Rules:
 - Mix of company types, school types, and communities — don't just return 30 companies.
 - Each reason should be specific and grounded in the user's actual patterns ("you've engaged with X frontier AI labs, Y is similar in talent profile").
 - WHEN RANKING DATA IS PROVIDED: prioritize companies adjacent to high-scoring ones in the user's data. Companies with score ≥ 10 and ≥ 1 superstar are high-signal patterns to extend from. Overdue ranked companies are good re-mining candidates if you set is_existing_entry to true and they're still in the NEW pool.
+- A company marked "IMPLICITLY-MINED" in the rankings context (10+ votes) has been effectively mined by the team even if not in TRIED — do not suggest these.
 - Output ONLY valid JSON. No prose, no markdown fences. Schema: { "candidates": [...] }`;
 
 export async function POST(_req: NextRequest) {
