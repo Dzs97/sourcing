@@ -1446,3 +1446,55 @@ select.filter-chip {
   display: inline-flex;
   align-items: center;
 }
+
+/* DAILY-ACTIVITY COHORT — action log inside history modal */
+.history-cohort-daily {
+  border-left: 3px solid var(--accent);
+}
+
+.history-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 280px;
+  overflow-y: auto;
+  margin: 0 -4px;
+}
+
+.history-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  transition: background 0.12s;
+}
+
+.history-action:hover {
+  background: var(--surface);
+}
+
+.history-action-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-fade);
+  width: 56px;
+  flex-shrink: 0;
+}
+
+.history-action-name {
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-action-arrow {
+  color: var(--text-fade);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}

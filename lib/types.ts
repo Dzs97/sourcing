@@ -34,14 +34,27 @@ export interface Entry {
 }
 
 /**
- * A snapshot of a batch of entries that were targeted together.
- * Captured at the moment "Apply batch" runs (before demotion).
+ * A unit of recorded targeting activity.
+ *
+ * Two flavours:
+ *   - "batch-apply" — captured when the user clicks "Apply batch" and the
+ *     whole targeting group gets demoted to "tried" at once. The `entries`
+ *     array holds the cohort that was archived.
+ *   - "daily-activity" — accumulates individual ✓/✕ status changes (and any
+ *     reverses) made on individual entries during a single calendar day.
+ *     The `actions` array holds the per-click log. There's at most one
+ *     daily-activity cohort per UTC day; new clicks merge into the existing
+ *     one for that day.
  */
 export interface TargetingCohort {
   id: string;
-  /** When this cohort was archived — i.e. when its members got demoted to "tried". */
+  /** When this cohort was archived. For daily-activity, the day's first action. */
   archivedAt: number;
-  /** Names of entries that were in this cohort. */
+  /** Discriminator. Optional for backwards compatibility (legacy → "batch-apply"). */
+  kind?: "batch-apply" | "daily-activity";
+  /** UTC day key for daily-activity cohorts ("YYYY-MM-DD"). Used for merging. */
+  dayKey?: string;
+  /** For batch-apply: snapshot of the cohort's members. */
   entries: Array<{
     name: string;
     type: EntryType;
@@ -49,7 +62,16 @@ export interface TargetingCohort {
     /** When this entry first joined the cohort, if known. */
     targetedAt?: number;
   }>;
-  /** Optional summary written by the user or generated automatically. */
+  /** For daily-activity: chronological log of individual status changes. */
+  actions?: Array<{
+    name: string;
+    type: EntryType;
+    domain: Domain;
+    fromStatus: Status;
+    toStatus: Status;
+    at: number;
+  }>;
+  /** Optional summary. */
   note?: string;
 }
 

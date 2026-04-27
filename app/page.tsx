@@ -764,6 +764,80 @@ export default function Home() {
                       month: "long",
                       day: "numeric",
                     });
+
+                    // === DAILY-ACTIVITY rendering ===
+                    if (cohort.kind === "daily-activity") {
+                      const actions = cohort.actions ?? [];
+                      // Newest action first within the day
+                      const sortedActions = [...actions].sort(
+                        (a, b) => b.at - a.at
+                      );
+                      // Quick stats: count by destination status
+                      const counts: Record<string, number> = {};
+                      for (const a of actions) {
+                        counts[a.toStatus] = (counts[a.toStatus] ?? 0) + 1;
+                      }
+                      const summary = Object.entries(counts)
+                        .map(
+                          ([s, n]) => `${n} → ${STATUS_LABELS[s as Status]}`
+                        )
+                        .join(" · ");
+
+                      return (
+                        <div
+                          key={cohort.id}
+                          className="history-cohort history-cohort-daily"
+                        >
+                          <div className="history-cohort-head">
+                            <div className="history-cohort-date">
+                              Daily activity — {dateStr}
+                            </div>
+                            <div className="history-cohort-count">
+                              {actions.length}{" "}
+                              {actions.length === 1 ? "action" : "actions"}
+                              {summary ? ` · ${summary}` : ""}
+                            </div>
+                          </div>
+                          <div className="history-actions">
+                            {sortedActions.map((a, i) => {
+                              const time = new Date(a.at).toLocaleTimeString(
+                                "en-US",
+                                { hour: "numeric", minute: "2-digit" }
+                              );
+                              return (
+                                <div
+                                  key={`${a.name}-${a.at}-${i}`}
+                                  className="history-action"
+                                >
+                                  <span className="history-action-time">
+                                    {time}
+                                  </span>
+                                  <span className="history-action-name">
+                                    {a.name}
+                                  </span>
+                                  <span
+                                    className={`status-pill ${a.fromStatus}`}
+                                    style={{ opacity: 0.5 }}
+                                  >
+                                    {STATUS_LABELS[a.fromStatus]}
+                                  </span>
+                                  <span className="history-action-arrow">
+                                    →
+                                  </span>
+                                  <span
+                                    className={`status-pill ${a.toStatus}`}
+                                  >
+                                    {STATUS_LABELS[a.toStatus]}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // === BATCH-APPLY rendering (legacy + ongoing) ===
                     // Group entries by domain
                     const groups: Record<string, typeof cohort.entries> = {};
                     for (const e of cohort.entries) {
@@ -774,7 +848,9 @@ export default function Home() {
                     return (
                       <div key={cohort.id} className="history-cohort">
                         <div className="history-cohort-head">
-                          <div className="history-cohort-date">{dateStr}</div>
+                          <div className="history-cohort-date">
+                            Batch archived — {dateStr}
+                          </div>
                           <div className="history-cohort-count">
                             {cohort.entries.length} entries archived
                           </div>

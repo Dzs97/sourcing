@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getEntries } from "@/lib/storage";
 import { getHistory } from "@/lib/history-storage";
 import { DOMAIN_LABELS, STATUS_LABELS, TYPE_LABELS } from "@/lib/types";
-import type { Entry } from "@/lib/types";
+import type { Entry, Status } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -84,15 +84,37 @@ export async function GET() {
   lines.push("");
   if (history.length === 0) {
     lines.push(
-      "_No archived cohorts yet. Cohorts are recorded when you apply a new batch._"
+      "_No archived cohorts yet. Cohorts are recorded as you mark entries tried/blacklisted, or when you apply a batch._"
     );
   } else {
     const sortedHistory = [...history].sort(
       (a, b) => b.archivedAt - a.archivedAt
     );
     for (const cohort of sortedHistory) {
+      // Daily-activity rendering
+      if (cohort.kind === "daily-activity") {
+        const actions = cohort.actions ?? [];
+        lines.push(
+          `### Daily activity — ${fmtDate(cohort.archivedAt)} (${actions.length} ${actions.length === 1 ? "action" : "actions"})`
+        );
+        lines.push("");
+        const sortedActions = [...actions].sort((a, b) => b.at - a.at);
+        for (const a of sortedActions) {
+          const time = new Date(a.at).toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+          });
+          lines.push(
+            `- _${time}_ — **${a.name}**: ${STATUS_LABELS[a.fromStatus]} → ${STATUS_LABELS[a.toStatus]}`
+          );
+        }
+        lines.push("");
+        continue;
+      }
+
+      // Batch-apply rendering (default)
       lines.push(
-        `### Cohort archived ${fmtDate(cohort.archivedAt)} — ${cohort.entries.length} entries`
+        `### Batch archived ${fmtDate(cohort.archivedAt)} — ${cohort.entries.length} entries`
       );
       lines.push("");
       const grouped = groupByDomain(
