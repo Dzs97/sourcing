@@ -15,6 +15,7 @@ export type Domain =
   | "fellowship"
   | "olympiad"
   | "open-source"
+  | "neos-portco"
   | "other";
 
 export interface Entry {
@@ -74,6 +75,7 @@ export const DOMAIN_LABELS: Record<Domain, string> = {
   fellowship: "Fellowship",
   olympiad: "Olympiad / Competition",
   "open-source": "Open Source",
+  "neos-portco": "Neo's PortCo",
   other: "Other",
 };
 
