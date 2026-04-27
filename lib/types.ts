@@ -1,4 +1,4 @@
-export type Status = "tried" | "targeting" | "new";
+export type Status = "tried" | "targeting" | "new" | "blacklisted";
 export type EntryType = "company" | "school" | "community" | "competition";
 export type Domain =
   | "frontier-ai"
@@ -56,6 +56,7 @@ export const STATUS_LABELS: Record<Status, string> = {
   tried: "Tried",
   targeting: "Targeting",
   new: "New",
+  blacklisted: "Blacklisted",
 };
 
 export const TYPE_LABELS: Record<EntryType, string> = {

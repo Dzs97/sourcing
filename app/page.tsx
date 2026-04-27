@@ -67,6 +67,8 @@ export default function Home() {
 
   const filtered = useMemo(() => {
     return entries.filter((e) => {
+      // Hide blacklisted entries unless explicitly viewing them
+      if (statusFilter !== "blacklisted" && e.status === "blacklisted") return false;
       if (statusFilter !== "all" && e.status !== statusFilter) return false;
       if (typeFilter !== "all" && e.type !== typeFilter) return false;
       if (domainFilter !== "all" && e.domain !== domainFilter) return false;
@@ -79,6 +81,7 @@ export default function Home() {
       tried: entries.filter((e) => e.status === "tried").length,
       targeting: entries.filter((e) => e.status === "targeting").length,
       new: entries.filter((e) => e.status === "new").length,
+      blacklisted: entries.filter((e) => e.status === "blacklisted").length,
       total: entries.length,
     };
   }, [entries]);
@@ -147,7 +150,7 @@ export default function Home() {
         <div className="masthead-meta">
           <strong>{counts.total}</strong> entries · <strong>{counts.tried}</strong> tried
           <br />
-          <strong>{counts.targeting}</strong> targeting · <strong>{counts.new}</strong> new
+          <strong>{counts.targeting}</strong> targeting · <strong>{counts.new}</strong> new · <strong>{counts.blacklisted}</strong> blacklisted
         </div>
       </header>
 
@@ -256,7 +259,7 @@ export default function Home() {
       <div className="filter-bar">
         <div className="filter-group">
           <span className="filter-label">Status</span>
-          {(["all", "targeting", "new", "tried"] as const).map((s) => (
+          {(["all", "targeting", "new", "tried", "blacklisted"] as const).map((s) => (
             <button
               key={s}
               className={`filter-chip ${statusFilter === s ? "active" : ""}`}
@@ -336,12 +339,32 @@ export default function Home() {
                     Target
                   </button>
                 )}
-                {e.status !== "new" && (
+                {e.status !== "new" && e.status !== "blacklisted" && (
                   <button
                     className="entry-action"
                     onClick={() => changeStatus(e.id, "new")}
                   >
                     Reset
+                  </button>
+                )}
+                {e.status !== "blacklisted" && (
+                  <button
+                    className="entry-action danger"
+                    onClick={() => {
+                      if (confirm(`Blacklist "${e.name}"? It'll be hidden from the main view and excluded from suggestions.`)) {
+                        changeStatus(e.id, "blacklisted");
+                      }
+                    }}
+                  >
+                    Blacklist
+                  </button>
+                )}
+                {e.status === "blacklisted" && (
+                  <button
+                    className="entry-action"
+                    onClick={() => changeStatus(e.id, "new")}
+                  >
+                    Un-blacklist
                   </button>
                 )}
                 <button

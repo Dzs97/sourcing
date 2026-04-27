@@ -306,11 +306,37 @@ textarea {
   background: var(--new);
 }
 
+.entry.status-blacklisted::before {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--accent),
+    var(--accent) 4px,
+    var(--paper) 4px,
+    var(--paper) 8px
+  );
+}
+
 .entry.status-tried .entry-name {
   color: var(--ink-fade);
   text-decoration: line-through;
   text-decoration-thickness: 1px;
   text-decoration-color: var(--rule);
+}
+
+.entry.status-blacklisted {
+  opacity: 0.55;
+  background: var(--paper-deep);
+}
+
+.entry.status-blacklisted .entry-name {
+  color: var(--ink-fade);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: var(--accent);
+}
+
+.entry.status-blacklisted:hover {
+  opacity: 1;
 }
 
 /* Add form */
