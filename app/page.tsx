@@ -6,7 +6,6 @@ import type {
   Status,
   EntryType,
   Domain,
-  Suggestion,
 } from "@/lib/types";
 import {
   DOMAIN_LABELS,
@@ -17,9 +16,16 @@ import {
 const DOMAINS = Object.keys(DOMAIN_LABELS) as Domain[];
 const TYPES = Object.keys(TYPE_LABELS) as EntryType[];
 
+interface BatchCandidate {
+  name: string;
+  type: EntryType;
+  domain: Domain;
+  reason: string;
+  is_existing_entry: boolean;
+}
+
 export default function Home() {
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
 
@@ -27,9 +33,6 @@ export default function Home() {
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [typeFilter, setTypeFilter] = useState<EntryType | "all">("all");
   const [domainFilter, setDomainFilter] = useState<Domain | "all">("all");
-  const [suggestionTypeFilter, setSuggestionTypeFilter] = useState<
-    EntryType | "all"
-  >("all");
 
   // Add form state
   const [newName, setNewName] = useState("");
@@ -37,20 +40,19 @@ export default function Home() {
   const [newType, setNewType] = useState<EntryType>("company");
   const [newDomain, setNewDomain] = useState<Domain>("frontier-ai");
 
+  // Batch generation state
+  const [batchModalOpen, setBatchModalOpen] = useState(false);
+  const [batchLoading, setBatchLoading] = useState(false);
+  const [batchError, setBatchError] = useState<string | null>(null);
+  const [candidates, setCandidates] = useState<BatchCandidate[]>([]);
+  const [selectedCandidates, setSelectedCandidates] = useState<Set<string>>(
+    new Set()
+  );
+
   async function loadEntries() {
     const res = await fetch("/api/pools");
     const data = await res.json();
     setEntries(data.entries);
-  }
-
-  async function loadSuggestions() {
-    const url =
-      suggestionTypeFilter === "all"
-        ? "/api/suggest"
-        : `/api/suggest?type=${suggestionTypeFilter}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    setSuggestions(data.suggestions);
   }
 
   useEffect(() => {
@@ -61,14 +63,26 @@ export default function Home() {
     })();
   }, []);
 
-  useEffect(() => {
-    if (!loading) loadSuggestions();
-  }, [entries, suggestionTypeFilter, loading]);
+  const targeting = useMemo(
+    () => entries.filter((e) => e.status === "targeting"),
+    [entries]
+  );
+
+  // Group targeting by domain for the prominent top block
+  const targetingByDomain = useMemo(() => {
+    const groups: Record<string, Entry[]> = {};
+    for (const e of targeting) {
+      const key = DOMAIN_LABELS[e.domain];
+      groups[key] = groups[key] ?? [];
+      groups[key].push(e);
+    }
+    return Object.entries(groups).sort((a, b) => b[1].length - a[1].length);
+  }, [targeting]);
 
   const filtered = useMemo(() => {
     return entries.filter((e) => {
-      // Hide blacklisted entries unless explicitly viewing them
       if (statusFilter !== "blacklisted" && e.status === "blacklisted") return false;
+      if (statusFilter === "all" && e.status === "targeting") return false; // targeting is shown up top
       if (statusFilter !== "all" && e.status !== statusFilter) return false;
       if (typeFilter !== "all" && e.type !== typeFilter) return false;
       if (domainFilter !== "all" && e.domain !== domainFilter) return false;
@@ -118,26 +132,81 @@ export default function Home() {
     await loadEntries();
   }
 
-  async function promote(s: Suggestion) {
-    // Suggestion is already in entries with status "new" — find it and bump to targeting
-    const match = entries.find(
-      (e) => e.name === s.name && e.type === s.type && e.domain === s.domain
+  function candidateKey(c: BatchCandidate): string {
+    return `${c.name}|${c.type}|${c.domain}`;
+  }
+
+  async function generateBatch() {
+    setBatchModalOpen(true);
+    setBatchLoading(true);
+    setBatchError(null);
+    setCandidates([]);
+    setSelectedCandidates(new Set());
+    try {
+      const res = await fetch("/api/batch/generate", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setBatchError(data.error ?? "Failed to generate batch");
+      } else {
+        setCandidates(data.candidates ?? []);
+        // Pre-select all by default
+        const allKeys = new Set<string>(
+          (data.candidates ?? []).map((c: BatchCandidate) => candidateKey(c))
+        );
+        setSelectedCandidates(allKeys);
+      }
+    } catch (err: any) {
+      setBatchError(err?.message ?? "Network error");
+    } finally {
+      setBatchLoading(false);
+    }
+  }
+
+  function toggleCandidate(c: BatchCandidate) {
+    const key = candidateKey(c);
+    const next = new Set(selectedCandidates);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    setSelectedCandidates(next);
+  }
+
+  async function applyBatch() {
+    const selected = candidates.filter((c) =>
+      selectedCandidates.has(candidateKey(c))
     );
-    if (match) {
-      await changeStatus(match.id, "targeting");
-    } else {
-      // Edge case: not in entries (shouldn't happen with rule-based) — add it
-      await fetch("/api/pools", {
+    if (selected.length === 0) return;
+
+    const proceed = confirm(
+      `This will:\n` +
+        `• Mark all ${counts.targeting} current targets as "tried"\n` +
+        `• Promote ${selected.length} new entries to targeting\n\n` +
+        `Continue?`
+    );
+    if (!proceed) return;
+
+    setBatchLoading(true);
+    try {
+      const res = await fetch("/api/batch/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: s.name,
-          status: "targeting",
-          type: s.type,
-          domain: s.domain,
+          selected: selected.map((c) => ({
+            name: c.name,
+            type: c.type,
+            domain: c.domain,
+          })),
         }),
       });
+      const data = await res.json();
+      if (!res.ok) {
+        setBatchError(data.error ?? "Failed to apply batch");
+        return;
+      }
+      setBatchModalOpen(false);
+      setCandidates([]);
       await loadEntries();
+    } finally {
+      setBatchLoading(false);
     }
   }
 
@@ -154,52 +223,67 @@ export default function Home() {
         </div>
       </header>
 
-      {/* SUGGESTIONS BLOCK */}
+      {/* TARGETING — PROMINENT TOP BLOCK */}
       <section className="suggestions">
-        <div className="suggestions-head">Suggested next moves</div>
-        <div className="suggestions-sub">
-          Based on your active domains
-        </div>
-
-        <div className="filter-bar" style={{ background: "transparent", borderColor: "var(--ink-soft)" }}>
-          <div className="filter-group">
-            <span className="filter-label">Filter</span>
-            {(["all", ...TYPES] as const).map((t) => (
-              <button
-                key={t}
-                className={`filter-chip ${suggestionTypeFilter === t ? "active" : ""}`}
-                style={
-                  suggestionTypeFilter === t
-                    ? { background: "var(--accent)", color: "var(--paper)", borderColor: "var(--accent)" }
-                    : { background: "transparent", color: "var(--ink-fade)", borderColor: "var(--ink-soft)" }
-                }
-                onClick={() => setSuggestionTypeFilter(t as EntryType | "all")}
-              >
-                {t === "all" ? "All" : TYPE_LABELS[t as EntryType]}
-              </button>
-            ))}
+        <div className="suggestions-head-row">
+          <div>
+            <div className="suggestions-head">Current targets</div>
+            <div className="suggestions-sub">
+              {counts.targeting} pools actively being mined
+            </div>
           </div>
+          <button
+            className="generate-btn"
+            onClick={generateBatch}
+            disabled={batchLoading}
+          >
+            {batchLoading ? "Generating…" : "↻ Generate next batch"}
+          </button>
         </div>
 
-        {suggestions.length === 0 ? (
+        {targeting.length === 0 ? (
           <div className="suggestions-empty">
-            No suggestions — every domain you've engaged with has been mined.
+            No active targets. Click "Generate next batch" to surface candidates.
           </div>
         ) : (
-          <div className="suggestion-list">
-            {suggestions.map((s, i) => (
-              <div key={`${s.name}-${i}`} className="suggestion">
-                <div className="suggestion-name">{s.name}</div>
-                <div className="suggestion-meta">
-                  {TYPE_LABELS[s.type]} · {DOMAIN_LABELS[s.domain]}
+          <div className="targeting-groups">
+            {targetingByDomain.map(([domain, items]) => (
+              <div key={domain} className="targeting-group">
+                <div className="targeting-group-head">
+                  <span className="targeting-group-name">{domain}</span>
+                  <span className="targeting-group-count">{items.length}</span>
                 </div>
-                <div className="suggestion-reason">{s.reason}</div>
-                <button
-                  className="suggestion-promote"
-                  onClick={() => promote(s)}
-                >
-                  → Move to targeting
-                </button>
+                <div className="targeting-list">
+                  {items.map((e) => (
+                    <div key={e.id} className="targeting-item">
+                      <span className="targeting-item-name">{e.name}</span>
+                      <div className="targeting-item-actions">
+                        <button
+                          className="t-action"
+                          onClick={() => changeStatus(e.id, "tried")}
+                          title="Mark tried"
+                        >
+                          ✓
+                        </button>
+                        <button
+                          className="t-action danger"
+                          onClick={() => {
+                            if (
+                              confirm(
+                                `Blacklist "${e.name}"? It'll be hidden and excluded from suggestions.`
+                              )
+                            ) {
+                              changeStatus(e.id, "blacklisted");
+                            }
+                          }}
+                          title="Blacklist"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
@@ -259,13 +343,13 @@ export default function Home() {
       <div className="filter-bar">
         <div className="filter-group">
           <span className="filter-label">Status</span>
-          {(["all", "targeting", "new", "tried", "blacklisted"] as const).map((s) => (
+          {(["all", "new", "tried", "blacklisted"] as const).map((s) => (
             <button
               key={s}
               className={`filter-chip ${statusFilter === s ? "active" : ""}`}
               onClick={() => setStatusFilter(s)}
             >
-              {s === "all" ? "All" : STATUS_LABELS[s as Status]}
+              {s === "all" ? "All (excl. targeting)" : STATUS_LABELS[s as Status]}
             </button>
           ))}
         </div>
@@ -299,13 +383,15 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ENTRIES */}
+      {/* ENTRIES (everything except targeting) */}
       <div className="section-head">
         <div className="section-title">
-          {statusFilter === "all" ? "All entries" : `${STATUS_LABELS[statusFilter as Status]}`}
+          {statusFilter === "all"
+            ? "Archive"
+            : `${STATUS_LABELS[statusFilter as Status]}`}
         </div>
         <div className="section-counts">
-          <span>{filtered.length}</span> shown · {counts.total} total
+          <span>{filtered.length}</span> shown
         </div>
       </div>
 
@@ -351,7 +437,11 @@ export default function Home() {
                   <button
                     className="entry-action danger"
                     onClick={() => {
-                      if (confirm(`Blacklist "${e.name}"? It'll be hidden from the main view and excluded from suggestions.`)) {
+                      if (
+                        confirm(
+                          `Blacklist "${e.name}"? It'll be hidden from the main view and excluded from suggestions.`
+                        )
+                      ) {
                         changeStatus(e.id, "blacklisted");
                       }
                     }}
@@ -376,6 +466,123 @@ export default function Home() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* BATCH GENERATION MODAL */}
+      {batchModalOpen && (
+        <div className="modal-backdrop" onClick={() => !batchLoading && setBatchModalOpen(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <div>
+                <div className="modal-title">Next batch — candidate review</div>
+                <div className="modal-sub">
+                  {batchLoading
+                    ? "Claude is analyzing your patterns…"
+                    : batchError
+                    ? "Error"
+                    : `${selectedCandidates.size} of ${candidates.length} selected`}
+                </div>
+              </div>
+              <button
+                className="modal-close"
+                onClick={() => setBatchModalOpen(false)}
+                disabled={batchLoading}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {batchLoading && candidates.length === 0 && (
+                <div className="modal-loading">
+                  Reasoning through your sourcing history…
+                  <br />
+                  <span className="modal-loading-note">
+                    This takes 20–40 seconds.
+                  </span>
+                </div>
+              )}
+
+              {batchError && (
+                <div className="modal-error">
+                  {batchError}
+                  <br />
+                  <br />
+                  <span style={{ fontSize: 12, fontStyle: "italic" }}>
+                    Make sure ANTHROPIC_API_KEY is set in your Vercel project's
+                    environment variables.
+                  </span>
+                </div>
+              )}
+
+              {candidates.length > 0 && (
+                <div className="candidates">
+                  {candidates.map((c) => {
+                    const key = candidateKey(c);
+                    const checked = selectedCandidates.has(key);
+                    return (
+                      <label
+                        key={key}
+                        className={`candidate ${checked ? "checked" : ""}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleCandidate(c)}
+                        />
+                        <div className="candidate-body">
+                          <div className="candidate-head">
+                            <span className="candidate-name">{c.name}</span>
+                            {!c.is_existing_entry && (
+                              <span className="candidate-tag">NEW</span>
+                            )}
+                          </div>
+                          <div className="candidate-meta">
+                            {TYPE_LABELS[c.type]} · {DOMAIN_LABELS[c.domain]}
+                          </div>
+                          <div className="candidate-reason">{c.reason}</div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {candidates.length > 0 && (
+              <div className="modal-footer">
+                <button
+                  className="modal-btn ghost"
+                  onClick={() => setSelectedCandidates(new Set())}
+                  disabled={batchLoading}
+                >
+                  Clear all
+                </button>
+                <button
+                  className="modal-btn ghost"
+                  onClick={() =>
+                    setSelectedCandidates(
+                      new Set(candidates.map((c) => candidateKey(c)))
+                    )
+                  }
+                  disabled={batchLoading}
+                >
+                  Select all
+                </button>
+                <div style={{ flex: 1 }} />
+                <button
+                  className="modal-btn primary"
+                  onClick={applyBatch}
+                  disabled={batchLoading || selectedCandidates.size === 0}
+                >
+                  {batchLoading
+                    ? "Applying…"
+                    : `Apply (${selectedCandidates.size})`}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </main>
