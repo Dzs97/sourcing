@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   Entry,
   Status,
@@ -12,6 +12,7 @@ import {
   STATUS_LABELS,
   TYPE_LABELS,
 } from "@/lib/types";
+import RankingsPanel from "./RankingsPanel";
 
 const DOMAINS = Object.keys(DOMAIN_LABELS) as Domain[];
 const TYPES = Object.keys(TYPE_LABELS) as EntryType[];
@@ -28,6 +29,9 @@ export default function Home() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+
+  // Top-level tab switching between the tracker and the rankings view
+  const [mainTab, setMainTab] = useState<"tracker" | "rankings">("tracker");
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
@@ -134,6 +138,32 @@ export default function Home() {
     await loadEntries();
   }
 
+  /**
+   * Promote a company by name (used by the Rankings panel).
+   * If the company already exists in entries, just changes its status.
+   * If it doesn't exist, adds a new entry with the given status.
+   */
+  async function promoteByName(name: string, status: Status) {
+    const existing = entries.find(
+      (e) => e.name.toLowerCase() === name.toLowerCase()
+    );
+    if (existing) {
+      await changeStatus(existing.id, status);
+    } else {
+      await fetch("/api/pools", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          status,
+          type: "company",
+          domain: "other",
+        }),
+      });
+      await loadEntries();
+    }
+  }
+
   function candidateKey(c: BatchCandidate): string {
     return `${c.name}|${c.type}|${c.domain}`;
   }
@@ -231,6 +261,26 @@ export default function Home() {
         </div>
       </header>
 
+      {/* MAIN TAB SWITCHER */}
+      <div className="main-tabs">
+        <button
+          className={`main-tab ${mainTab === "tracker" ? "active" : ""}`}
+          onClick={() => setMainTab("tracker")}
+        >
+          Tracker
+        </button>
+        <button
+          className={`main-tab ${mainTab === "rankings" ? "active" : ""}`}
+          onClick={() => setMainTab("rankings")}
+        >
+          Rankings
+        </button>
+      </div>
+
+      {mainTab === "rankings" ? (
+        <RankingsPanel entries={entries} onPromote={promoteByName} />
+      ) : (
+      <>
       {/* FEATURED — TARGETING */}
       <section className="featured">
         <div className="featured-head">
@@ -623,6 +673,8 @@ export default function Home() {
             )}
           </div>
         </div>
+      )}
+      </>
       )}
     </main>
   );

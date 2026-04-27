@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getEntries } from "@/lib/storage";
+import { getRankings } from "@/lib/rankings-storage";
 import { DOMAIN_LABELS, TYPE_LABELS } from "@/lib/types";
 import type { Entry, EntryType, Domain } from "@/lib/types";
+import type { RankingsBundle } from "@/lib/rankings-types";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // generous for LLM call
@@ -18,7 +20,7 @@ interface BatchCandidate {
 const VALID_DOMAINS = Object.keys(DOMAIN_LABELS) as Domain[];
 const VALID_TYPES = Object.keys(TYPE_LABELS) as EntryType[];
 
-function buildContext(entries: Entry[]): string {
+function buildContext(entries: Entry[], rankings: RankingsBundle | null): string {
   const tried = entries.filter((e) => e.status === "tried");
   const targeting = entries.filter((e) => e.status === "targeting");
   const blacklisted = entries.filter((e) => e.status === "blacklisted");
@@ -40,7 +42,7 @@ function buildContext(entries: Entry[]): string {
       .join("\n");
   };
 
-  return `## TRIED (${tried.length}) — already mined, do not re-suggest
+  const baseContext = `## TRIED (${tried.length}) — already mined, do not re-suggest
 ${summarize(tried)}
 
 ## CURRENTLY TARGETING (${targeting.length}) — being mined now, do not re-suggest
@@ -51,6 +53,38 @@ ${summarize(blacklisted, 200)}
 
 ## EXISTING IN 'NEW' POOL (${newPool.length}) — already in the database awaiting attention; you can recommend these AND brand-new ones
 ${summarize(newPool)}`;
+
+  if (!rankings) return baseContext;
+
+  // Build a ranked-companies context — companies the user has historically
+  // had quality outcomes from. Score = +5/superstar, +2/yes, +1/maybe, -1/no.
+  // Show top 60 ranked companies with quality signals.
+  const triedNames = new Set([...tried, ...targeting, ...blacklisted].map((e) => e.name.toLowerCase()));
+  const topRanked = rankings.rankings
+    .slice(0, 60)
+    .map((r) => {
+      const status = triedNames.has(r.company.toLowerCase()) ? "ALREADY-MINED" : "untried";
+      const stars = r.superstar > 0 ? ` ★${r.superstar}` : "";
+      return `  ${r.company} [score=${r.total_score}${stars}, votes=${r.total_votes}, ${status}]`;
+    })
+    .join("\n");
+
+  // Recency: companies last sourced 180+ days ago — strong "due to re-mine" signal
+  const overdueRanked = rankings.recency
+    .filter((r) => r.days_ago >= 180)
+    .slice(0, 30)
+    .map((r) => `  ${r.company} (last sourced ${Math.round(r.days_ago)}d ago, ${r.num_candidates} candidates)`)
+    .join("\n");
+
+  return `${baseContext}
+
+## QUALITY SIGNAL — TOP RANKED COMPANIES (from past candidate decisions)
+Score = (+5)·superstar + (+2)·yes + (+1)·maybe + (-1)·no. Higher = better historical hit rate.
+Source as of ${rankings.source_as_of ?? "unknown"}.
+${topRanked}
+
+## OVERDUE FOR RE-SOURCING (180+ days since last touch)
+${overdueRanked || "  none"}`;
 }
 
 const SYSTEM_PROMPT = `You are an elite recruiting strategist helping a user identify the next batch of engineering talent pools (companies, schools, communities, competitions) to source from.
@@ -71,6 +105,7 @@ Rules:
 - Bias toward US-based talent pools.
 - Mix of company types, school types, and communities — don't just return 30 companies.
 - Each reason should be specific and grounded in the user's actual patterns ("you've engaged with X frontier AI labs, Y is similar in talent profile").
+- WHEN RANKING DATA IS PROVIDED: prioritize companies adjacent to high-scoring ones in the user's data. Companies with score ≥ 10 and ≥ 1 superstar are high-signal patterns to extend from. Overdue ranked companies are good re-mining candidates if you set is_existing_entry to true and they're still in the NEW pool.
 - Output ONLY valid JSON. No prose, no markdown fences. Schema: { "candidates": [...] }`;
 
 export async function POST(_req: NextRequest) {
@@ -86,7 +121,8 @@ export async function POST(_req: NextRequest) {
   }
 
   const entries = await getEntries();
-  const context = buildContext(entries);
+  const rankings = await getRankings();
+  const context = buildContext(entries, rankings);
 
   const client = new Anthropic({ apiKey });
 

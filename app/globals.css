@@ -1041,3 +1041,287 @@ select.filter-chip {
   padding: 40px 0;
   text-align: center;
 }
+
+/* MAIN TAB SWITCHER (Tracker / Rankings) */
+.main-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.main-tab {
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-fade);
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.15s;
+  letter-spacing: -0.01em;
+}
+
+.main-tab:hover {
+  color: var(--text-soft);
+}
+
+.main-tab.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+/* RANKINGS PANEL */
+
+/* Action buttons in the dark featured header (mirror the t-action style from targeting groups) */
+.rankings-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.rankings-action-btn {
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink-text);
+  border: 1px solid var(--ink-divider);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.rankings-action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.rankings-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rankings-action-btn.rankings-action-danger:hover:not(:disabled) {
+  background: rgba(245, 0, 0, 0.2);
+  border-color: rgba(245, 0, 0, 0.4);
+  color: #ff6b6b;
+}
+
+/* Sub-tabs inside the dark block — like the targeting groups, but as nav */
+.rankings-subtabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+  position: relative;
+  z-index: 1;
+  flex-wrap: wrap;
+}
+
+.rankings-subtab {
+  background: var(--ink-glass);
+  border: 1px solid var(--ink-divider);
+  border-radius: var(--r-pill);
+  padding: 9px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-text-soft);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  transition: all 0.15s;
+}
+
+.rankings-subtab:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--ink-text);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.rankings-subtab.active {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.rankings-subtab-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.rankings-subtab.active .rankings-subtab-count {
+  background: rgba(17, 18, 18, 0.15);
+  color: var(--accent-text);
+}
+
+/* Search input — pill style, matches filter-chip family */
+.rankings-search {
+  flex: 1;
+  width: 100%;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text);
+  font-family: var(--font-sans);
+  transition: border-color 0.15s;
+}
+
+.rankings-search:focus {
+  outline: none;
+  border-color: var(--text);
+}
+
+.rankings-search::placeholder {
+  color: var(--text-fade);
+}
+
+/* Rankings table — matches entry card surfaces */
+.rankings-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.rankings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.rankings-table thead {
+  background: var(--surface-2);
+}
+
+.rankings-table th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-fade);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+}
+
+.rankings-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.rankings-table tbody tr {
+  transition: background 0.12s;
+}
+
+.rankings-table tbody tr:hover {
+  background: var(--bg);
+}
+
+.rankings-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rk-rank {
+  font-family: var(--font-mono);
+  color: var(--text-fade);
+  font-size: 12px;
+}
+
+.rk-company {
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.rk-num {
+  font-family: var(--font-mono);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+.rk-num strong {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.rk-num.rk-yes {
+  color: var(--accent-text);
+}
+
+.rk-num.rk-no {
+  color: var(--text-fade);
+}
+
+.rk-recency {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.rk-recency.overdue {
+  color: var(--status-blacklisted);
+  font-weight: 600;
+}
+
+.rk-no-entry {
+  font-size: 11px;
+  color: var(--text-fade);
+  font-style: italic;
+}
+
+.rk-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Row highlight: gold (>2 superstars) and high score */
+.rankings-table tr.row-gold td {
+  background: linear-gradient(90deg, rgba(255, 222, 0, 0.06) 0%, transparent 50%);
+}
+
+.rankings-table tr.row-gold:hover td {
+  background: linear-gradient(90deg, rgba(255, 222, 0, 0.12) 0%, var(--bg) 50%);
+}
+
+.rankings-table tr.row-high td:first-child {
+  border-left: 2px solid var(--accent);
+}
+
+.gold-marker {
+  margin-right: 6px;
+  font-size: 12px;
+}
+
+.rankings-no-results {
+  padding: 60px 24px;
+  text-align: center;
+  color: var(--text-fade);
+  font-size: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+
+.rankings-truncated {
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--text-fade);
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-style: italic;
+}

@@ -93,3 +93,27 @@ After deploy, GET `/api/admin/reset-targeting` for a dry run, then POST to apply
 - **`POST /api/batch/generate`** — get LLM candidates (no DB mutation)
 - **`POST /api/batch/apply`** — promote selected candidates, demote old targets
 - **`GET /api/health`** — verify storage and LLM config
+
+## Rankings tab
+
+A second tab in the app for cross-referencing your tracker entries with quality scores from a `Company_Rankings.xlsx` export.
+
+**Upload flow:**
+1. Click the **Rankings** tab
+2. First time: click "Upload Company_Rankings.xlsx" and pick the file
+3. Subsequent uploads replace the old data (use the "↑ Replace data" button)
+
+**Three views:**
+- **All ranked** — every scored company. Best for searching.
+- **My entries** — only companies that exist in your tracker. See your tried/targeting/new pools side-by-side with their historical quality signals.
+- **Untried high scorers** — companies with score ≥ 10 that aren't in your tracker yet. The fastest path to finding under-mined talent pools.
+
+**Sortable** by score, rank, votes, superstars (★), or recency (most overdue first).
+
+**One-click promote:** any row in the rankings table has a "+ Target" or "→ Target" button that adds it to your targeting list immediately. Adds with `domain: other` by default — you can fix the domain in the tracker tab.
+
+**LLM integration:** When ranking data is loaded, the **Generate next batch** feature in the Tracker tab uses it as additional context. Claude sees:
+- The top 60 companies by score (and which ones you've already mined)
+- Companies that are 180+ days overdue for re-sourcing
+
+This makes batch suggestions much sharper — Claude can recommend high-score adjacent companies you haven't touched yet.
