@@ -34,6 +34,9 @@ export default function Home() {
   const [typeFilter, setTypeFilter] = useState<EntryType | "all">("all");
   const [domainFilter, setDomainFilter] = useState<Domain | "all">("all");
 
+  // Archive collapse state — collapsed by default to keep main view clean
+  const [archiveOpen, setArchiveOpen] = useState(false);
+
   // Add form state
   const [newName, setNewName] = useState("");
   const [newStatus, setNewStatus] = useState<Status>("targeting");
@@ -349,64 +352,79 @@ export default function Home() {
         </form>
       )}
 
-      {/* FILTERS */}
-      <div className="filter-bar">
-        <div className="filter-group">
-          <span className="filter-label">Status</span>
-          {(["all", "new", "tried", "blacklisted"] as const).map((s) => (
-            <button
-              key={s}
-              className={`filter-chip ${statusFilter === s ? "active" : ""}`}
-              onClick={() => setStatusFilter(s)}
-            >
-              {s === "all" ? "All" : STATUS_LABELS[s as Status]}
-            </button>
-          ))}
-        </div>
-        <div className="filter-group">
-          <span className="filter-label">Type</span>
-          {(["all", ...TYPES] as const).map((t) => (
-            <button
-              key={t}
-              className={`filter-chip ${typeFilter === t ? "active" : ""}`}
-              onClick={() => setTypeFilter(t as EntryType | "all")}
-            >
-              {t === "all" ? "All" : TYPE_LABELS[t as EntryType]}
-            </button>
-          ))}
-        </div>
-        <div className="filter-group">
-          <span className="filter-label">Domain</span>
-          <select
-            value={domainFilter}
-            onChange={(e) => setDomainFilter(e.target.value as Domain | "all")}
-            className="filter-chip"
-          >
-            <option value="all">All domains</option>
-            {DOMAINS.map((d) => (
-              <option key={d} value={d}>
-                {DOMAIN_LABELS[d]}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      {/* ARCHIVE — collapsible */}
+      <button
+        className={`archive-toggle ${archiveOpen ? "open" : ""}`}
+        onClick={() => setArchiveOpen(!archiveOpen)}
+      >
+        <span className="archive-toggle-chevron">▸</span>
+        <span className="archive-toggle-label">Archive</span>
+        <span className="archive-toggle-meta">
+          {counts.tried} tried · {counts.new} new
+          {counts.blacklisted > 0 ? ` · ${counts.blacklisted} blacklisted` : ""}
+        </span>
+      </button>
 
-      {/* ENTRIES */}
-      <div className="section-head">
-        <div className="section-title">
-          {statusFilter === "all"
-            ? "Archive"
-            : `${STATUS_LABELS[statusFilter as Status]}`}
-        </div>
-        <div className="section-counts">
-          <span>{filtered.length}</span> shown
-        </div>
-      </div>
+      {archiveOpen && (
+        <div className="archive-content">
+          {/* FILTERS */}
+          <div className="filter-bar">
+            <div className="filter-group">
+              <span className="filter-label">Status</span>
+              {(["all", "new", "tried", "blacklisted"] as const).map((s) => (
+                <button
+                  key={s}
+                  className={`filter-chip ${statusFilter === s ? "active" : ""}`}
+                  onClick={() => setStatusFilter(s)}
+                >
+                  {s === "all" ? "All" : STATUS_LABELS[s as Status]}
+                </button>
+              ))}
+            </div>
+            <div className="filter-group">
+              <span className="filter-label">Type</span>
+              {(["all", ...TYPES] as const).map((t) => (
+                <button
+                  key={t}
+                  className={`filter-chip ${typeFilter === t ? "active" : ""}`}
+                  onClick={() => setTypeFilter(t as EntryType | "all")}
+                >
+                  {t === "all" ? "All" : TYPE_LABELS[t as EntryType]}
+                </button>
+              ))}
+            </div>
+            <div className="filter-group">
+              <span className="filter-label">Domain</span>
+              <select
+                value={domainFilter}
+                onChange={(e) => setDomainFilter(e.target.value as Domain | "all")}
+                className="filter-chip"
+              >
+                <option value="all">All domains</option>
+                {DOMAINS.map((d) => (
+                  <option key={d} value={d}>
+                    {DOMAIN_LABELS[d]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-      {loading ? (
-        <div className="loading">Loading…</div>
-      ) : (
+          {/* ENTRIES */}
+          <div className="archive-section-head">
+            <div className="archive-section-title">
+              {statusFilter === "all"
+                ? "All entries"
+                : `${STATUS_LABELS[statusFilter as Status]}`}
+            </div>
+            <div className="archive-section-count">
+              <span>{filtered.length}</span> shown
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="loading">Loading…</div>
+          ) : (
         <div className="entries">
           {filtered.map((e) => (
             <div key={e.id} className={`entry status-${e.status}`}>
@@ -477,6 +495,8 @@ export default function Home() {
               </div>
             </div>
           ))}
+        </div>
+      )}
         </div>
       )}
 
