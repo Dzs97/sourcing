@@ -68,7 +68,6 @@ export default function Home() {
     [entries]
   );
 
-  // Group targeting by domain for the prominent top block
   const targetingByDomain = useMemo(() => {
     const groups: Record<string, Entry[]> = {};
     for (const e of targeting) {
@@ -82,7 +81,7 @@ export default function Home() {
   const filtered = useMemo(() => {
     return entries.filter((e) => {
       if (statusFilter !== "blacklisted" && e.status === "blacklisted") return false;
-      if (statusFilter === "all" && e.status === "targeting") return false; // targeting is shown up top
+      if (statusFilter === "all" && e.status === "targeting") return false;
       if (statusFilter !== "all" && e.status !== statusFilter) return false;
       if (typeFilter !== "all" && e.type !== typeFilter) return false;
       if (domainFilter !== "all" && e.domain !== domainFilter) return false;
@@ -149,7 +148,6 @@ export default function Home() {
         setBatchError(data.error ?? "Failed to generate batch");
       } else {
         setCandidates(data.candidates ?? []);
-        // Pre-select all by default
         const allKeys = new Set<string>(
           (data.candidates ?? []).map((c: BatchCandidate) => candidateKey(c))
         );
@@ -213,23 +211,34 @@ export default function Home() {
   return (
     <main className="shell">
       <header className="masthead">
-        <h1 className="masthead-title">
-          The Sourcing <span className="italic">Dossier</span>
-        </h1>
+        <h1 className="masthead-title">Sourcing Tracker</h1>
         <div className="masthead-meta">
-          <strong>{counts.total}</strong> entries · <strong>{counts.tried}</strong> tried
-          <br />
-          <strong>{counts.targeting}</strong> targeting · <strong>{counts.new}</strong> new · <strong>{counts.blacklisted}</strong> blacklisted
+          <span className="masthead-meta-item">
+            <strong>{counts.total}</strong> total
+          </span>
+          <span className="masthead-meta-item">
+            <strong>{counts.tried}</strong> tried
+          </span>
+          <span className="masthead-meta-item">
+            <strong>{counts.new}</strong> new
+          </span>
+          <span className="masthead-meta-item">
+            <strong>{counts.blacklisted}</strong> blacklisted
+          </span>
         </div>
       </header>
 
-      {/* TARGETING — PROMINENT TOP BLOCK */}
-      <section className="suggestions">
-        <div className="suggestions-head-row">
+      {/* FEATURED — TARGETING */}
+      <section className="featured">
+        <div className="featured-head">
           <div>
-            <div className="suggestions-head">Current targets</div>
-            <div className="suggestions-sub">
-              {counts.targeting} pools actively being mined
+            <div className="featured-eyebrow">CURRENTLY TARGETING</div>
+            <div className="featured-stat">
+              <span className="featured-stat-num">{counts.targeting}</span>
+              <span className="featured-stat-label">pools targeting</span>
+            </div>
+            <div className="featured-sub">
+              Active pipeline grouped by domain
             </div>
           </div>
           <button
@@ -237,12 +246,13 @@ export default function Home() {
             onClick={generateBatch}
             disabled={batchLoading}
           >
-            {batchLoading ? "Generating…" : "↻ Generate next batch"}
+            <span className="generate-btn-icon">↻</span>
+            {batchLoading ? "Generating…" : "Generate next batch"}
           </button>
         </div>
 
         {targeting.length === 0 ? (
-          <div className="suggestions-empty">
+          <div className="featured-empty">
             No active targets. Click "Generate next batch" to surface candidates.
           </div>
         ) : (
@@ -349,7 +359,7 @@ export default function Home() {
               className={`filter-chip ${statusFilter === s ? "active" : ""}`}
               onClick={() => setStatusFilter(s)}
             >
-              {s === "all" ? "All (excl. targeting)" : STATUS_LABELS[s as Status]}
+              {s === "all" ? "All" : STATUS_LABELS[s as Status]}
             </button>
           ))}
         </div>
@@ -371,7 +381,6 @@ export default function Home() {
             value={domainFilter}
             onChange={(e) => setDomainFilter(e.target.value as Domain | "all")}
             className="filter-chip"
-            style={{ padding: "4px 10px" }}
           >
             <option value="all">All domains</option>
             {DOMAINS.map((d) => (
@@ -383,7 +392,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ENTRIES (everything except targeting) */}
+      {/* ENTRIES */}
       <div className="section-head">
         <div className="section-title">
           {statusFilter === "all"
@@ -396,16 +405,18 @@ export default function Home() {
       </div>
 
       {loading ? (
-        <div className="loading">Loading dossier…</div>
+        <div className="loading">Loading…</div>
       ) : (
         <div className="entries">
           {filtered.map((e) => (
             <div key={e.id} className={`entry status-${e.status}`}>
               <div className="entry-name">{e.name}</div>
               <div className="entry-meta">
-                <span>{STATUS_LABELS[e.status]}</span>
-                <span>{TYPE_LABELS[e.type]}</span>
-                <span className="domain">{DOMAIN_LABELS[e.domain]}</span>
+                <span className={`status-pill ${e.status}`}>
+                  {STATUS_LABELS[e.status]}
+                </span>
+                <span className="type-pill">{TYPE_LABELS[e.type]}</span>
+                <span className="domain-pill">{DOMAIN_LABELS[e.domain]}</span>
               </div>
               {e.notes && <div className="entry-notes">{e.notes}</div>}
               <div className="entry-actions">
@@ -471,7 +482,10 @@ export default function Home() {
 
       {/* BATCH GENERATION MODAL */}
       {batchModalOpen && (
-        <div className="modal-backdrop" onClick={() => !batchLoading && setBatchModalOpen(false)}>
+        <div
+          className="modal-backdrop"
+          onClick={() => !batchLoading && setBatchModalOpen(false)}
+        >
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <div>
@@ -496,11 +510,11 @@ export default function Home() {
             <div className="modal-body">
               {batchLoading && candidates.length === 0 && (
                 <div className="modal-loading">
-                  Reasoning through your sourcing history…
-                  <br />
-                  <span className="modal-loading-note">
+                  <div className="spinner"></div>
+                  <div>Reasoning through your sourcing history…</div>
+                  <div className="modal-loading-note">
                     This takes 20–40 seconds.
-                  </span>
+                  </div>
                 </div>
               )}
 
@@ -539,7 +553,12 @@ export default function Home() {
                             )}
                           </div>
                           <div className="candidate-meta">
-                            {TYPE_LABELS[c.type]} · {DOMAIN_LABELS[c.domain]}
+                            <span className="type-pill">
+                              {TYPE_LABELS[c.type]}
+                            </span>
+                            <span className="domain-pill">
+                              {DOMAIN_LABELS[c.domain]}
+                            </span>
                           </div>
                           <div className="candidate-reason">{c.reason}</div>
                         </div>
