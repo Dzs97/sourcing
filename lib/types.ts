@@ -1,5 +1,6 @@
 export type Status = "tried" | "targeting" | "new" | "blacklisted";
 export type EntryType = "company" | "school" | "community" | "competition";
+export type Priority = "high" | "low";
 export type Domain =
   | "frontier-ai"
   | "healthcare-ai"
@@ -31,6 +32,11 @@ export interface Entry {
    * Optional because legacy entries may not have it.
    */
   targetedAt?: number;
+  /**
+   * Priority within targeting block. "high" floats to the top, "low" sits below.
+   * Optional for backwards compatibility — undefined is treated as "high".
+   */
+  priority?: Priority;
 }
 
 /**

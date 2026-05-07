@@ -6,6 +6,7 @@ import type {
   Status,
   EntryType,
   Domain,
+  Priority,
   TargetingCohort,
 } from "@/lib/types";
 import {
@@ -93,15 +94,40 @@ export default function Home() {
     [entries]
   );
 
-  const targetingByDomain = useMemo(() => {
+  // Split targeting into priority tiers — undefined priority = "high"
+  const targetingHigh = useMemo(
+    () => targeting.filter((e) => (e.priority ?? "high") === "high"),
+    [targeting]
+  );
+  const targetingLow = useMemo(
+    () => targeting.filter((e) => e.priority === "low"),
+    [targeting]
+  );
+
+  const groupByDomain = (items: Entry[]) => {
     const groups: Record<string, Entry[]> = {};
-    for (const e of targeting) {
+    for (const e of items) {
       const key = DOMAIN_LABELS[e.domain];
       groups[key] = groups[key] ?? [];
       groups[key].push(e);
     }
     return Object.entries(groups).sort((a, b) => b[1].length - a[1].length);
-  }, [targeting]);
+  };
+
+  const targetingHighByDomain = useMemo(
+    () => groupByDomain(targetingHigh),
+    [targetingHigh]
+  );
+  const targetingLowByDomain = useMemo(
+    () => groupByDomain(targetingLow),
+    [targetingLow]
+  );
+
+  // Legacy var for backwards compat — used by any remaining reference
+  const targetingByDomain = useMemo(
+    () => groupByDomain(targeting),
+    [targeting]
+  );
 
   const filtered = useMemo(() => {
     return entries.filter((e) => {
@@ -146,6 +172,16 @@ export default function Home() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
+    });
+    await loadEntries();
+  }
+
+  async function togglePriority(id: string, current: Priority | undefined) {
+    const next: Priority = (current ?? "high") === "high" ? "low" : "high";
+    await fetch(`/api/pools/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ priority: next }),
     });
     await loadEntries();
   }
@@ -336,47 +372,131 @@ export default function Home() {
             No active targets. Click "Generate next batch" to surface candidates.
           </div>
         ) : (
-          <div className="targeting-groups">
-            {targetingByDomain.map(([domain, items]) => (
-              <div key={domain} className="targeting-group">
-                <div className="targeting-group-head">
-                  <span className="targeting-group-name">{domain}</span>
-                  <span className="targeting-group-count">{items.length}</span>
-                </div>
-                <div className="targeting-list">
-                  {items.map((e) => (
-                    <div key={e.id} className="targeting-item">
-                      <span className="targeting-item-name">{e.name}</span>
-                      <div className="targeting-item-actions">
-                        <button
-                          className="t-action"
-                          onClick={() => changeStatus(e.id, "tried")}
-                          title="Mark tried"
-                        >
-                          ✓
-                        </button>
-                        <button
-                          className="t-action danger"
-                          onClick={() => {
-                            if (
-                              confirm(
-                                `Blacklist "${e.name}"? It'll be hidden and excluded from suggestions.`
-                              )
-                            ) {
-                              changeStatus(e.id, "blacklisted");
-                            }
-                          }}
-                          title="Blacklist"
-                        >
-                          ✕
-                        </button>
+          <>
+            {targetingHighByDomain.length > 0 && (
+              <>
+                {targetingLowByDomain.length > 0 && (
+                  <div className="targeting-tier-label">
+                    Primary targets
+                    <span className="targeting-tier-count">
+                      {targetingHigh.length}
+                    </span>
+                  </div>
+                )}
+                <div className="targeting-groups">
+                  {targetingHighByDomain.map(([domain, items]) => (
+                    <div key={`high-${domain}`} className="targeting-group">
+                      <div className="targeting-group-head">
+                        <span className="targeting-group-name">{domain}</span>
+                        <span className="targeting-group-count">
+                          {items.length}
+                        </span>
+                      </div>
+                      <div className="targeting-list">
+                        {items.map((e) => (
+                          <div key={e.id} className="targeting-item">
+                            <span className="targeting-item-name">{e.name}</span>
+                            <div className="targeting-item-actions">
+                              <button
+                                className="t-action subtle"
+                                onClick={() => togglePriority(e.id, e.priority)}
+                                title="Demote to secondary"
+                              >
+                                ↓
+                              </button>
+                              <button
+                                className="t-action"
+                                onClick={() => changeStatus(e.id, "tried")}
+                                title="Mark tried"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                className="t-action danger"
+                                onClick={() => {
+                                  if (
+                                    confirm(
+                                      `Blacklist "${e.name}"? It'll be hidden and excluded from suggestions.`
+                                    )
+                                  ) {
+                                    changeStatus(e.id, "blacklisted");
+                                  }
+                                }}
+                                title="Blacklist"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            ))}
-          </div>
+              </>
+            )}
+
+            {targetingLowByDomain.length > 0 && (
+              <>
+                <div className="targeting-tier-label targeting-tier-label-low">
+                  Secondary targets
+                  <span className="targeting-tier-count">
+                    {targetingLow.length}
+                  </span>
+                </div>
+                <div className="targeting-groups targeting-groups-low">
+                  {targetingLowByDomain.map(([domain, items]) => (
+                    <div key={`low-${domain}`} className="targeting-group">
+                      <div className="targeting-group-head">
+                        <span className="targeting-group-name">{domain}</span>
+                        <span className="targeting-group-count">
+                          {items.length}
+                        </span>
+                      </div>
+                      <div className="targeting-list">
+                        {items.map((e) => (
+                          <div key={e.id} className="targeting-item">
+                            <span className="targeting-item-name">{e.name}</span>
+                            <div className="targeting-item-actions">
+                              <button
+                                className="t-action subtle"
+                                onClick={() => togglePriority(e.id, e.priority)}
+                                title="Promote to primary"
+                              >
+                                ↑
+                              </button>
+                              <button
+                                className="t-action"
+                                onClick={() => changeStatus(e.id, "tried")}
+                                title="Mark tried"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                className="t-action danger"
+                                onClick={() => {
+                                  if (
+                                    confirm(
+                                      `Blacklist "${e.name}"? It'll be hidden and excluded from suggestions.`
+                                    )
+                                  ) {
+                                    changeStatus(e.id, "blacklisted");
+                                  }
+                                }}
+                                title="Blacklist"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </>
         )}
       </section>
 

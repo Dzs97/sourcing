@@ -39,12 +39,13 @@ export async function GET() {
   });
 
   const lines: string[] = [];
-  lines.push("Name,Status,Type,Domain,Date Targeted,Date Added,Notes");
+  lines.push("Name,Status,Priority,Type,Domain,Date Targeted,Date Added,Notes");
   for (const e of sorted) {
     lines.push(
       [
         csvCell(e.name),
         csvCell(STATUS_LABELS[e.status]),
+        csvCell(e.priority ?? (e.status === "targeting" ? "high" : "")),
         csvCell(TYPE_LABELS[e.type]),
         csvCell(DOMAIN_LABELS[e.domain]),
         csvCell(fmtDate(e.targetedAt)),
