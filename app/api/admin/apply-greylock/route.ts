@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { getEntries, addEntry } from "@/lib/storage";
+import { getEntries, addEntry, updateEntry } from "@/lib/storage";
+import { logDailyAction } from "@/lib/history-storage";
 import { GREYLOCK_BATCH_2026_05_12 } from "@/lib/greylock-batch-seed";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 function normalize(s: string): string {
   return s.toLowerCase().trim().replace(/\s+/g, " ");
@@ -12,16 +13,35 @@ function normalize(s: string): string {
 /**
  * Greylock Partners portfolio batch (May 12 2026).
  *
- * Behavior:
- *   - Adds entries with status='targeting' and priority='low' (Secondary targets tier).
- *   - Mixed in with existing GC + Accel secondary entries.
- *   - Idempotent — skips any whose normalized name is already in the DB.
- *   - Add-only — does not archive/demote/promote anything else.
+ * Three-stage operation in one POST:
+ *   1. MARK AS TRIED: All current targeting entries with names ending in
+ *      "(Thrive)" or "(Index)" → status="tried". They leave the Primary tier
+ *      entirely and join the Tried list. Logged to daily-activity history.
+ *   2. PROMOTE: All current targeting entries with names ending in
+ *      "(Accel)" or "(General Catalyst)" → priority="high" (Secondary → Primary).
+ *   3. ADD: All Greylock companies as priority="low" (Secondary tier).
+ *
+ * Idempotent — skips any whose normalized name is already in the DB.
+ * Does not touch any entries that don't match the above patterns.
  */
 
 export async function GET() {
   const entries = await getEntries();
   const existing = new Set(entries.map((e) => normalize(e.name)));
+
+  const triedCandidates = entries.filter(
+    (e) =>
+      e.status === "targeting" &&
+      (e.name.endsWith("(Thrive)") || e.name.endsWith("(Index)"))
+  );
+
+  const promotionCandidates = entries.filter(
+    (e) =>
+      e.status === "targeting" &&
+      (e.priority ?? "high") === "low" &&
+      (e.name.endsWith("(Accel)") ||
+        e.name.endsWith("(General Catalyst)"))
+  );
 
   const seenInBatch = new Set<string>();
   const wouldAdd: Array<{ name: string; domain: string }> = [];
@@ -42,27 +62,56 @@ export async function GET() {
   }
 
   const currentTargeting = entries.filter((e) => e.status === "targeting");
+  const currentPrimary = currentTargeting.filter(
+    (e) => (e.priority ?? "high") === "high"
+  ).length;
+  const currentSecondary = currentTargeting.filter(
+    (e) => e.priority === "low"
+  ).length;
+
   return NextResponse.json({
     dry_run: true,
-    current_targeting_total: currentTargeting.length,
-    current_targeting_primary: currentTargeting.filter(
-      (e) => (e.priority ?? "high") === "high"
-    ).length,
-    current_targeting_secondary: currentTargeting.filter(
-      (e) => e.priority === "low"
-    ).length,
-    seed_total: GREYLOCK_BATCH_2026_05_12.length,
-    would_add_count: wouldAdd.length,
-    skipped_count: skipped.length,
-    final_targeting_after: currentTargeting.length + wouldAdd.length,
-    final_secondary_after:
-      currentTargeting.filter((e) => e.priority === "low").length +
-      wouldAdd.length,
-    sample_first_20: wouldAdd.slice(0, 20),
-    skipped,
+    current_state: {
+      targeting_total: currentTargeting.length,
+      targeting_primary: currentPrimary,
+      targeting_secondary: currentSecondary,
+      tried_total: entries.filter((e) => e.status === "tried").length,
+    },
+    stage_1_mark_tried: {
+      total: triedCandidates.length,
+      thrive: triedCandidates.filter((e) => e.name.endsWith("(Thrive)")).length,
+      index: triedCandidates.filter((e) => e.name.endsWith("(Index)")).length,
+      sample_first_10: triedCandidates.slice(0, 10).map((e) => e.name),
+    },
+    stage_2_promote: {
+      total: promotionCandidates.length,
+      accel: promotionCandidates.filter((e) => e.name.endsWith("(Accel)"))
+        .length,
+      general_catalyst: promotionCandidates.filter((e) =>
+        e.name.endsWith("(General Catalyst)")
+      ).length,
+      sample_first_10: promotionCandidates.slice(0, 10).map((e) => e.name),
+    },
+    stage_3_add: {
+      total: wouldAdd.length,
+      skipped: skipped.length,
+      sample_first_20: wouldAdd.slice(0, 20),
+    },
+    projected_final_state: {
+      targeting_total:
+        currentTargeting.length - triedCandidates.length + wouldAdd.length,
+      targeting_primary: currentPrimary + promotionCandidates.length,
+      targeting_secondary:
+        currentSecondary - promotionCandidates.length + wouldAdd.length,
+      tried_total:
+        entries.filter((e) => e.status === "tried").length +
+        triedCandidates.length,
+    },
     instruction:
-      "POST to apply. Adds all entries as 'targeting' with priority='low' (Secondary tier). " +
-      "Idempotent and add-only.",
+      "POST to apply. Three-stage operation: " +
+      "(1) marks (Thrive)/(Index) targeting entries as 'tried', " +
+      "(2) promotes (Accel)/(General Catalyst) Secondary → Primary, " +
+      "(3) adds Greylock entries as Secondary. Idempotent.",
   });
 }
 
@@ -71,6 +120,42 @@ export async function POST() {
   const initial = await getEntries();
   const existing = new Set(initial.map((e) => normalize(e.name)));
 
+  // STAGE 1: Mark Thrive/Index targeting → tried (and log to daily activity)
+  const triedTargets = initial.filter(
+    (e) =>
+      e.status === "targeting" &&
+      (e.name.endsWith("(Thrive)") || e.name.endsWith("(Index)"))
+  );
+  const triedSummary = { thrive: 0, index: 0 };
+  for (const e of triedTargets) {
+    await updateEntry(e.id, { status: "tried" });
+    await logDailyAction({
+      name: e.name,
+      type: e.type,
+      domain: e.domain,
+      fromStatus: "targeting",
+      toStatus: "tried",
+    });
+    if (e.name.endsWith("(Thrive)")) triedSummary.thrive++;
+    else triedSummary.index++;
+  }
+
+  // STAGE 2: Promote Accel/GC low → high
+  const promotionTargets = initial.filter(
+    (e) =>
+      e.status === "targeting" &&
+      (e.priority ?? "high") === "low" &&
+      (e.name.endsWith("(Accel)") ||
+        e.name.endsWith("(General Catalyst)"))
+  );
+  const promotedSummary = { accel: 0, general_catalyst: 0 };
+  for (const e of promotionTargets) {
+    await updateEntry(e.id, { priority: "high" });
+    if (e.name.endsWith("(Accel)")) promotedSummary.accel++;
+    else promotedSummary.general_catalyst++;
+  }
+
+  // STAGE 3: Add Greylock as low priority
   const added: string[] = [];
   const skipped: string[] = [];
 
@@ -95,6 +180,7 @@ export async function POST() {
 
   const final = await getEntries();
   const finalTargeting = final.filter((e) => e.status === "targeting");
+
   return NextResponse.json({
     ok: true,
     summary: {
@@ -106,9 +192,20 @@ export async function POST() {
       final_targeting_secondary: finalTargeting.filter(
         (e) => e.priority === "low"
       ).length,
+      final_tried_count: final.filter((e) => e.status === "tried").length,
     },
-    added_count: added.length,
-    skipped_count: skipped.length,
+    stage_1_marked_tried: {
+      total: triedSummary.thrive + triedSummary.index,
+      ...triedSummary,
+    },
+    stage_2_promoted: {
+      total: promotedSummary.accel + promotedSummary.general_catalyst,
+      ...promotedSummary,
+    },
+    stage_3_added: {
+      total: added.length,
+      skipped: skipped.length,
+    },
     skipped,
   });
 }
