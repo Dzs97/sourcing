@@ -27,7 +27,7 @@ interface PayloadItem {
 }
 
 export async function POST(req: NextRequest) {
-  let body: { entries?: PayloadItem[]; dryRun?: boolean };
+  let body: { entries?: PayloadItem[]; dryRun?: boolean; sourceTag?: string };
   try {
     body = await req.json();
   } catch {
@@ -41,6 +41,9 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  const sourceTag = body.sourceTag?.trim();
+  const suffix = sourceTag ? ` (${sourceTag})` : "";
 
   const invalid: Array<{ index: number; reason: string }> = [];
   const normalizedItems: Array<{
@@ -77,8 +80,11 @@ export async function POST(req: NextRequest) {
       invalid.push({ index: idx, reason: `invalid priority: ${priority}` });
       return;
     }
+    const baseName = item.name.trim();
+    const finalName =
+      suffix && !baseName.endsWith(suffix) ? baseName + suffix : baseName;
     normalizedItems.push({
-      name: item.name.trim(),
+      name: finalName,
       type,
       domain,
       status,
