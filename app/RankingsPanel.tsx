@@ -47,7 +47,7 @@ function canonicalizeRankingName(name: string): string {
   return RANKINGS_ALIASES[name] ?? name;
 }
 
-type Tab = "all" | "mine" | "untried";
+type Tab = "all" | "mine" | "untried" | "all-tracker";
 type SortKey = "rank" | "score" | "votes" | "superstar" | "recency";
 
 interface RankingsPanelProps {
@@ -107,11 +107,44 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
     return m;
   }, [bundle]);
 
+  // Index rankings by canonical lowercased company name so we can attach
+  // rankings data to a tracker entry when building the "all-tracker" view.
+  const rankingsByCompany = useMemo(() => {
+    const m = new Map<string, Ranking>();
+    if (!bundle) return m;
+    for (const r of bundle.rankings) {
+      m.set(r.company.toLowerCase(), r);
+      const canon = canonicalizeRankingName(r.company);
+      if (canon !== r.company) m.set(canon.toLowerCase(), r);
+    }
+    return m;
+  }, [bundle]);
+
   // Compute the rows to show based on tab + filters + sort
   const rows = useMemo(() => {
     if (!bundle) return [];
 
-    let base = bundle.rankings;
+    let base: Ranking[];
+
+    if (tab === "all-tracker") {
+      // Build a row per tracker entry. If the entry has rankings data attach
+      // it, otherwise synthesize a zeroed Ranking so the table renders.
+      base = entries.map((e) => {
+        const existing = rankingsByCompany.get(e.name.toLowerCase());
+        if (existing) return existing;
+        return {
+          rank: 0,
+          company: e.name,
+          total_score: 0,
+          superstar: 0,
+          yes: 0,
+          no: 0,
+          total_votes: 0,
+        } as Ranking;
+      });
+    } else {
+      base = bundle.rankings;
+    }
 
     // Apply tab filter
     if (tab === "mine") {
@@ -156,11 +189,11 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
     });
 
     return sorted;
-  }, [bundle, tab, sortKey, search, entriesByName, recencyByCompany]);
+  }, [bundle, tab, sortKey, search, entries, entriesByName, recencyByCompany, rankingsByCompany]);
 
   // Stats for the tab labels and hero block
   const stats = useMemo(() => {
-    if (!bundle) return { all: 0, mine: 0, untried: 0, gold: 0 };
+    if (!bundle) return { all: 0, mine: 0, untried: 0, gold: 0, allTracker: entries.length };
     let mine = 0;
     let untried = 0;
     let gold = 0;
@@ -175,8 +208,8 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
         untried++;
       }
     }
-    return { all: bundle.rankings.length, mine, untried, gold };
-  }, [bundle, entriesByName]);
+    return { all: bundle.rankings.length, mine, untried, gold, allTracker: entries.length };
+  }, [bundle, entries, entriesByName]);
 
   async function handleUpload(file: File) {
     setUploading(true);
@@ -262,6 +295,8 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
       ? { num: stats.mine, label: "in your tracker" }
       : tab === "untried"
       ? { num: stats.untried, label: "untried high scorers" }
+      : tab === "all-tracker"
+      ? { num: stats.allTracker, label: "companies in your tracker" }
       : { num: stats.all, label: "companies ranked" };
 
   return (
@@ -330,6 +365,13 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
             <span>Untried high scorers</span>
             <span className="rankings-subtab-count">{stats.untried}</span>
           </button>
+          <button
+            className={`rankings-subtab ${tab === "all-tracker" ? "active" : ""}`}
+            onClick={() => setTab("all-tracker")}
+          >
+            <span>All tracker</span>
+            <span className="rankings-subtab-count">{stats.allTracker}</span>
+          </button>
         </div>
       </section>
 
@@ -366,6 +408,8 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
             ? "Companies in your tracker"
             : tab === "untried"
             ? `Score ≥ ${HIGH_SCORE_THRESHOLD}, votes < ${TRIED_VOTE_THRESHOLD}, not yet tracked`
+            : tab === "all-tracker"
+            ? "Every company in your tracker"
             : "All ranked companies"}
         </div>
         <div className="archive-section-count">
@@ -392,30 +436,33 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
               </tr>
             </thead>
             <tbody>
-              {rows.slice(0, 200).map((r) => {
+              {rows.slice(0, 200).map((r, idx) => {
                 const entry = lookupEntry(r.company);
                 const recency = recencyByCompany.get(r.company.toLowerCase());
                 const isOverdue = recency && recency.days_ago >= OVERDUE_DAYS;
                 const isHighScore = r.total_score >= HIGH_SCORE_THRESHOLD;
                 const isImplicitlyTried = r.total_votes >= TRIED_VOTE_THRESHOLD;
                 const isGold = r.superstar > 2;
+                // Synthetic rows (tracker entries with no rankings data) have
+                // rank=0 and total_votes=0 — show dashes instead of zeros.
+                const isUnranked = r.rank === 0 && r.total_votes === 0;
 
                 return (
                   <tr
-                    key={`${r.rank}-${r.company}`}
+                    key={`${r.rank}-${r.company}-${idx}`}
                     className={isGold ? "row-gold" : isHighScore ? "row-high" : ""}
                   >
-                    <td className="rk-rank">{r.rank}</td>
+                    <td className="rk-rank">{isUnranked ? "—" : r.rank}</td>
                     <td className="rk-company">
                       {isGold && <span className="gold-marker" title=">2 superstars">⭐</span>}
                       {r.company}
                     </td>
                     <td className="rk-num">
-                      <strong>{r.total_score}</strong>
+                      {isUnranked ? "—" : <strong>{r.total_score}</strong>}
                     </td>
                     <td className="rk-num">{r.superstar > 0 ? r.superstar : "·"}</td>
-                    <td className="rk-num rk-yes">{r.yes}</td>
-                    <td className="rk-num rk-no">{r.no}</td>
+                    <td className="rk-num rk-yes">{isUnranked ? "—" : r.yes}</td>
+                    <td className="rk-num rk-no">{isUnranked ? "—" : r.no}</td>
                     <td className={`rk-recency ${isOverdue ? "overdue" : ""}`}>
                       {recency ? `${Math.round(recency.days_ago)}d` : "—"}
                     </td>
