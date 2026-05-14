@@ -357,19 +357,11 @@ export default function Home() {
               Active pipeline grouped by domain
             </div>
           </div>
-          <button
-            className="generate-btn"
-            onClick={generateBatch}
-            disabled={batchLoading}
-          >
-            <span className="generate-btn-icon">↻</span>
-            {batchLoading ? "Generating…" : "Generate next batch"}
-          </button>
         </div>
 
         {targeting.length === 0 ? (
           <div className="featured-empty">
-            No active targets. Click "Generate next batch" to surface candidates.
+            No active targets.
           </div>
         ) : (
           <>
