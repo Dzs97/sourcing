@@ -64,6 +64,14 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Pagination — pageSize=0 means "show all"
+  const [pageSize, setPageSize] = useState<number>(200);
+  const [page, setPage] = useState<number>(1);
+
+  // Reset to page 1 when the filtered/sorted result set changes
+  useEffect(() => {
+    setPage(1);
+  }, [tab, search, sortKey, pageSize]);
 
   async function load() {
     setLoading(true);
@@ -436,7 +444,10 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
               </tr>
             </thead>
             <tbody>
-              {rows.slice(0, 200).map((r, idx) => {
+              {(pageSize === 0
+                ? rows
+                : rows.slice((page - 1) * pageSize, page * pageSize)
+              ).map((r, idx) => {
                 const entry = lookupEntry(r.company);
                 const recency = recencyByCompany.get(r.company.toLowerCase());
                 const isOverdue = recency && recency.days_ago >= OVERDUE_DAYS;
@@ -507,11 +518,50 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
               })}
             </tbody>
           </table>
-          {rows.length > 200 && (
-            <div className="rankings-truncated">
-              Showing first 200 of {rows.length} matches. Refine search to narrow down.
+          <div className="rankings-pagination">
+            <div className="rankings-pagination-info">
+              {pageSize === 0
+                ? `Showing all ${rows.length}`
+                : `Showing ${Math.min((page - 1) * pageSize + 1, rows.length)}–${Math.min(page * pageSize, rows.length)} of ${rows.length}`}
             </div>
-          )}
+            <div className="rankings-pagination-controls">
+              <span className="filter-label">Per page</span>
+              {[100, 200, 500, 1000, 0].map((n) => (
+                <button
+                  key={n}
+                  className={`filter-chip ${pageSize === n ? "active" : ""}`}
+                  onClick={() => setPageSize(n)}
+                >
+                  {n === 0 ? "All" : n}
+                </button>
+              ))}
+              {pageSize !== 0 && rows.length > pageSize && (
+                <>
+                  <button
+                    className="filter-chip"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                  >
+                    ← Prev
+                  </button>
+                  <span className="filter-label">
+                    Page {page} / {Math.max(1, Math.ceil(rows.length / pageSize))}
+                  </span>
+                  <button
+                    className="filter-chip"
+                    onClick={() =>
+                      setPage((p) =>
+                        Math.min(Math.ceil(rows.length / pageSize), p + 1)
+                      )
+                    }
+                    disabled={page >= Math.ceil(rows.length / pageSize)}
+                  >
+                    Next →
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </>

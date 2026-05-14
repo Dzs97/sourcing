@@ -1328,6 +1328,36 @@ select.filter-chip {
   font-style: italic;
 }
 
+.rankings-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 16px;
+  font-size: 12px;
+  color: var(--text-fade);
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+}
+
+.rankings-pagination-info {
+  font-size: 12px;
+  color: var(--text-fade);
+}
+
+.rankings-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.rankings-pagination-controls .filter-chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* MASTHEAD ACTION BUTTON & RIGHT-SIDE LAYOUT */
 .masthead-right {
   display: flex;
