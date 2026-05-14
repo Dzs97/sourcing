@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEntries, addEntry } from "@/lib/storage";
-import type { Domain, EntryType, Status } from "@/lib/types";
+import type { Domain, EntryType, Priority, Status } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +11,7 @@ const VALID_DOMAINS: Domain[] = [
 ];
 const VALID_TYPES: EntryType[] = ["company", "school", "community", "competition"];
 const VALID_STATUSES: Status[] = ["new", "targeting", "tried", "blacklisted"];
+const VALID_PRIORITIES: Priority[] = ["high", "low"];
 
 function normalize(s: string): string {
   return s.toLowerCase().trim().replace(/\s+/g, " ");
@@ -21,6 +22,7 @@ interface PayloadItem {
   type?: EntryType;
   domain?: Domain;
   status?: Status;
+  priority?: Priority;
   notes?: string;
 }
 
@@ -46,6 +48,7 @@ export async function POST(req: NextRequest) {
     type: EntryType;
     domain: Domain;
     status: Status;
+    priority?: Priority;
     notes?: string;
   }> = [];
 
@@ -69,11 +72,17 @@ export async function POST(req: NextRequest) {
       invalid.push({ index: idx, reason: `invalid status: ${status}` });
       return;
     }
+    const priority = item.priority;
+    if (priority !== undefined && !VALID_PRIORITIES.includes(priority)) {
+      invalid.push({ index: idx, reason: `invalid priority: ${priority}` });
+      return;
+    }
     normalizedItems.push({
       name: item.name.trim(),
       type,
       domain,
       status,
+      priority,
       notes: item.notes?.trim() || undefined,
     });
   });
@@ -125,6 +134,7 @@ export async function POST(req: NextRequest) {
       status: item.status,
       type: item.type,
       domain: item.domain,
+      priority: item.priority,
       notes: item.notes,
       targetedAt: item.status === "targeting" ? Date.now() : undefined,
     });
