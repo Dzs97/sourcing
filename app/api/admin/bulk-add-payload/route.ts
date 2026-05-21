@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEntries, addEntry } from "@/lib/storage";
 import type { Domain, EntryType, Priority, Status } from "@/lib/types";
+import { fuzzyName } from "@/lib/name-normalize";
 
 export const dynamic = "force-dynamic";
 
@@ -13,18 +14,8 @@ const VALID_TYPES: EntryType[] = ["company", "school", "community", "competition
 const VALID_STATUSES: Status[] = ["new", "targeting", "tried", "blacklisted"];
 const VALID_PRIORITIES: Priority[] = ["high", "low"];
 
-/**
- * Aggressive normalization for dedupe:
- *   1. Strip trailing " (VC name)" suffix so "Foo" and "Foo (Benchmark)" match
- *   2. Lowercase
- *   3. Remove all non-alphanumerics so "OpenEvidence" / "Open Evidence" / "open-evidence" collapse
- *
- * This catches whitespace/case/punctuation variants that the old normalize missed.
- */
-function normalize(s: string): string {
-  const noVc = (s || "").replace(/\s*\([^)]*\)\s*$/, "").trim();
-  return noVc.toLowerCase().replace(/[^a-z0-9]/g, "");
-}
+// Shared normalize — see lib/name-normalize.ts
+const normalize = fuzzyName;
 
 interface PayloadItem {
   name: string;

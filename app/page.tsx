@@ -15,6 +15,7 @@ import {
   TYPE_LABELS,
 } from "@/lib/types";
 import RankingsPanel from "./RankingsPanel";
+import { fuzzyName } from "@/lib/name-normalize";
 
 const DOMAINS = Object.keys(DOMAIN_LABELS) as Domain[];
 const TYPES = Object.keys(TYPE_LABELS) as EntryType[];
@@ -198,9 +199,11 @@ export default function Home() {
    * If it doesn't exist, adds a new entry with the given status.
    */
   async function promoteByName(name: string, status: Status) {
-    const existing = entries.find(
-      (e) => e.name.toLowerCase() === name.toLowerCase()
-    );
+    // Use fuzzyName so "ClickHouse" matches "ClickHouse (Benchmark)",
+    // "Open Evidence" matches "OpenEvidence", etc. Prevents the
+    // Rankings "+ Target" button from creating duplicates.
+    const target = fuzzyName(name);
+    const existing = entries.find((e) => fuzzyName(e.name) === target);
     if (existing) {
       await changeStatus(existing.id, status);
     } else {

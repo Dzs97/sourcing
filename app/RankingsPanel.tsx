@@ -9,6 +9,7 @@ import type {
   RankingsBundle,
 } from "@/lib/rankings-types";
 import { HIGH_SCORE_THRESHOLD, OVERDUE_DAYS } from "@/lib/rankings-types";
+import { fuzzyName } from "@/lib/name-normalize";
 
 // Threshold above which a Rankings company is considered "already tried"
 // regardless of whether it's in the user's tracker. 10+ votes means the team
@@ -88,21 +89,23 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
     load();
   }, []);
 
-  // Index entries by lowercased name for O(1) cross-reference
+  // Index entries by fuzzy-normalized name for cross-reference.
+  // fuzzyName() strips VC suffixes (" (Benchmark)"), spaces, punctuation, and case
+  // so "ClickHouse (Benchmark)" matches a Rankings row "ClickHouse".
   const entriesByName = useMemo(() => {
     const m = new Map<string, Entry>();
-    for (const e of entries) m.set(e.name.toLowerCase(), e);
+    for (const e of entries) m.set(fuzzyName(e.name), e);
     return m;
   }, [entries]);
 
   // Helper: given a Rankings row, look up the matching tracker entry
-  // (using the alias map so "Anduril Industries" matches "Anduril")
+  // (also tries the alias map so "Anduril Industries" matches "Anduril")
   const lookupEntry = (companyName: string): Entry | undefined => {
-    const direct = entriesByName.get(companyName.toLowerCase());
+    const direct = entriesByName.get(fuzzyName(companyName));
     if (direct) return direct;
     const canonical = canonicalizeRankingName(companyName);
     if (canonical !== companyName) {
-      return entriesByName.get(canonical.toLowerCase());
+      return entriesByName.get(fuzzyName(canonical));
     }
     return undefined;
   };
