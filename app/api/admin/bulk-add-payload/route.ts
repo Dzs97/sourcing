@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getEntries, addEntry } from "@/lib/storage";
-import type { Domain, EntryType, Priority, Status } from "@/lib/types";
+import { getEntries, addEntry, updateEntry } from "@/lib/storage";
+import type { Domain, Entry, EntryType, Priority, Status } from "@/lib/types";
 import { fuzzyName } from "@/lib/name-normalize";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +16,40 @@ const VALID_PRIORITIES: Priority[] = ["high", "low"];
 
 // Shared normalize — see lib/name-normalize.ts
 const normalize = fuzzyName;
+
+/**
+ * Extract VC tags from an entry. Looks at:
+ *   1. The trailing " (VC1, VC2)" suffix on the name
+ *   2. The "Also backed by: VC1, VC2" line in notes
+ *
+ * Used to decide whether a sourceTag is already attributed to an existing entry.
+ */
+function extractVcTags(entry: Entry): Set<string> {
+  const tags = new Set<string>();
+  const m = entry.name.match(/\(([^)]+)\)\s*$/);
+  if (m) m[1].split(",").map((s) => s.trim()).filter(Boolean).forEach((t) => tags.add(t));
+  const noteMatch = (entry.notes ?? "").match(/Also backed by:\s*([^\n]+)/i);
+  if (noteMatch) noteMatch[1].split(",").map((s) => s.trim()).filter(Boolean).forEach((t) => tags.add(t));
+  return tags;
+}
+
+/**
+ * Append a VC tag to an entry's "Also backed by:" notes line.
+ * Returns the new notes string (or unchanged if the VC was already there).
+ */
+function appendVcToNotes(existingNotes: string | undefined, newVc: string): string {
+  const notes = existingNotes ?? "";
+  const markerRegex = /Also backed by:\s*([^\n]+)/i;
+  const match = notes.match(markerRegex);
+  if (match) {
+    const vcs = match[1].split(",").map((s) => s.trim()).filter(Boolean);
+    if (vcs.includes(newVc)) return notes;
+    const updated = `Also backed by: ${[...vcs, newVc].join(", ")}`;
+    return notes.replace(markerRegex, updated);
+  }
+  const tail = `Also backed by: ${newVc}`;
+  return notes.trim() ? `${notes.trim()}\n${tail}` : tail;
+}
 
 interface PayloadItem {
   name: string;
@@ -101,17 +135,33 @@ export async function POST(req: NextRequest) {
   }
 
   const existing = await getEntries();
-  const existingNames = new Set(existing.map((e) => normalize(e.name)));
+  // Map normalized name -> existing entry so we can update notes on collisions.
+  const existingByName = new Map<string, Entry>();
+  for (const e of existing) existingByName.set(normalize(e.name), e);
 
   const seenInPayload = new Set<string>();
   const toAdd: typeof normalizedItems = [];
   const skippedAlreadyInDb: string[] = [];
   const skippedDuplicateInPayload: string[] = [];
+  // When sourceTag is set, collisions with a different VC trigger a notes
+  // update on the existing entry instead of being silently dropped.
+  const crossVcTagged: Array<{ name: string; addedVc: string }> = [];
+  const crossVcAlreadyTagged: string[] = [];
 
   for (const item of normalizedItems) {
     const key = normalize(item.name);
-    if (existingNames.has(key)) {
-      skippedAlreadyInDb.push(item.name);
+    const collision = existingByName.get(key);
+    if (collision) {
+      if (sourceTag) {
+        const tags = extractVcTags(collision);
+        if (tags.has(sourceTag)) {
+          crossVcAlreadyTagged.push(collision.name);
+        } else {
+          crossVcTagged.push({ name: collision.name, addedVc: sourceTag });
+        }
+      } else {
+        skippedAlreadyInDb.push(item.name);
+      }
     } else if (seenInPayload.has(key)) {
       skippedDuplicateInPayload.push(item.name);
     } else {
@@ -126,8 +176,12 @@ export async function POST(req: NextRequest) {
       current_db_count: existing.length,
       payload_count: normalizedItems.length,
       would_add_count: toAdd.length,
+      would_cross_vc_tag_count: crossVcTagged.length,
+      already_tagged_count: crossVcAlreadyTagged.length,
       skipped_already_in_db: skippedAlreadyInDb,
       skipped_duplicate_in_payload: skippedDuplicateInPayload,
+      would_cross_vc_tag: crossVcTagged,
+      already_tagged: crossVcAlreadyTagged,
       would_add: toAdd,
       instruction: "POST again with dryRun:false (or omitted) to apply.",
     });
@@ -147,14 +201,28 @@ export async function POST(req: NextRequest) {
     added.push(item.name);
   }
 
+  // Apply cross-VC notes updates for collisions with a different VC.
+  const crossVcUpdated: string[] = [];
+  for (const c of crossVcTagged) {
+    const entry = existing.find((e) => e.name === c.name);
+    if (!entry) continue;
+    const newNotes = appendVcToNotes(entry.notes, c.addedVc);
+    await updateEntry(entry.id, { notes: newNotes });
+    crossVcUpdated.push(c.name);
+  }
+
   const final = await getEntries();
   return NextResponse.json({
     ok: true,
     added_count: added.length,
+    cross_vc_tagged_count: crossVcUpdated.length,
+    already_tagged_count: crossVcAlreadyTagged.length,
     skipped_already_in_db_count: skippedAlreadyInDb.length,
     skipped_duplicate_in_payload_count: skippedDuplicateInPayload.length,
     final_db_count: final.length,
     added,
+    cross_vc_tagged: crossVcUpdated,
+    already_tagged: crossVcAlreadyTagged,
     skipped_already_in_db: skippedAlreadyInDb,
     skipped_duplicate_in_payload: skippedDuplicateInPayload,
   });
