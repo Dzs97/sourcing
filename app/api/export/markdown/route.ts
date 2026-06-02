@@ -6,6 +6,10 @@ import type { Entry, Status } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
+// All date formatting is pinned to PT (America/Los_Angeles) so server-side
+// renders (Vercel runs in UTC) match what the user sees locally.
+const PT = "America/Los_Angeles" as const;
+
 function fmtDate(ts: number | undefined): string {
   if (!ts) return "—";
   const d = new Date(ts);
@@ -13,6 +17,7 @@ function fmtDate(ts: number | undefined): string {
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: PT,
   });
 }
 
@@ -23,6 +28,7 @@ function fmtDateShort(ts: number | undefined): string {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: PT,
   });
 }
 
@@ -103,6 +109,7 @@ export async function GET() {
           const time = new Date(a.at).toLocaleTimeString("en-US", {
             hour: "numeric",
             minute: "2-digit",
+            timeZone: PT,
           });
           lines.push(
             `- _${time}_ — **${a.name}**: ${STATUS_LABELS[a.fromStatus]} → ${STATUS_LABELS[a.toStatus]}`
@@ -192,7 +199,9 @@ export async function GET() {
   lines.push(`_Exported from Sourcing Tracker on ${today}_`);
 
   const md = lines.join("\n");
-  const filename = `sourcing-tracker-${new Date().toISOString().split("T")[0]}.md`;
+  // PT day for the filename so an export at 11pm PT doesn't tomorrow-stamp.
+  const ptDay = new Date().toLocaleDateString("en-CA", { timeZone: PT });
+  const filename = `sourcing-tracker-${ptDay}.md`;
 
   return new NextResponse(md, {
     headers: {

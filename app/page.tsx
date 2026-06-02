@@ -878,6 +878,7 @@ export default function Home() {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
+                      timeZone: "America/Los_Angeles",
                     });
 
                     // === DAILY-ACTIVITY rendering ===
@@ -917,7 +918,11 @@ export default function Home() {
                             {sortedActions.map((a, i) => {
                               const time = new Date(a.at).toLocaleTimeString(
                                 "en-US",
-                                { hour: "numeric", minute: "2-digit" }
+                                {
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                  timeZone: "America/Los_Angeles",
+                                }
                               );
                               return (
                                 <div

@@ -49,7 +49,7 @@ export interface Entry {
  *   - "daily-activity" — accumulates individual ✓/✕ status changes (and any
  *     reverses) made on individual entries during a single calendar day.
  *     The `actions` array holds the per-click log. There's at most one
- *     daily-activity cohort per UTC day; new clicks merge into the existing
+ *     daily-activity cohort per PT day; new clicks merge into the existing
  *     one for that day.
  */
 export interface TargetingCohort {
@@ -58,7 +58,7 @@ export interface TargetingCohort {
   archivedAt: number;
   /** Discriminator. Optional for backwards compatibility (legacy → "batch-apply"). */
   kind?: "batch-apply" | "daily-activity";
-  /** UTC day key for daily-activity cohorts ("YYYY-MM-DD"). Used for merging. */
+  /** PT day key for daily-activity cohorts ("YYYY-MM-DD"). Used for merging. */
   dayKey?: string;
   /** For batch-apply: snapshot of the cohort's members. */
   entries: Array<{

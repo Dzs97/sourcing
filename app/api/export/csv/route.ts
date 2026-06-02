@@ -15,10 +15,13 @@ function csvCell(v: string | number | undefined): string {
   return s;
 }
 
+// PT day for CSV dates — toISOString() returns UTC, which can shift a day for
+// evening-PT timestamps. en-CA produces YYYY-MM-DD natively.
 function fmtDate(ts: number | undefined): string {
   if (!ts) return "";
-  const d = new Date(ts);
-  return d.toISOString().split("T")[0]; // YYYY-MM-DD
+  return new Date(ts).toLocaleDateString("en-CA", {
+    timeZone: "America/Los_Angeles",
+  });
 }
 
 export async function GET() {

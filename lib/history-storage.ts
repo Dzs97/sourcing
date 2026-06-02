@@ -58,9 +58,17 @@ export async function clearHistory(): Promise<void> {
   await redis.del(HISTORY_KEY);
 }
 
-/** Today's date as a UTC day key, e.g. "2026-04-27" */
+/**
+ * Today's date as a PT (America/Los_Angeles) day key, e.g. "2026-04-27".
+ * We use PT — not UTC — so daily-activity cohorts roll over at midnight PT.
+ * Otherwise clicks made in the evening (PT) would bucket into the next day's
+ * cohort because of UTC offset.
+ */
 function todayKey(now = Date.now()): string {
-  return new Date(now).toISOString().slice(0, 10);
+  // en-CA locale formats as YYYY-MM-DD, which we slice further just in case.
+  return new Date(now).toLocaleDateString("en-CA", {
+    timeZone: "America/Los_Angeles",
+  });
 }
 
 export interface DailyAction {
