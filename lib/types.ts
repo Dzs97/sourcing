@@ -1,6 +1,6 @@
 export type Status = "tried" | "targeting" | "new" | "blacklisted";
 export type EntryType = "company" | "school" | "community" | "competition";
-export type Priority = "high" | "low";
+export type Priority = "high" | "low" | "tertiary";
 export type Domain =
   | "frontier-ai"
   | "healthcare-ai"
@@ -33,7 +33,8 @@ export interface Entry {
    */
   targetedAt?: number;
   /**
-   * Priority within targeting block. "high" floats to the top, "low" sits below.
+   * Priority within targeting block. "high" floats to the top (Primary),
+   * "low" sits below (Secondary), "tertiary" sits at the bottom (Tertiary).
    * Optional for backwards compatibility — undefined is treated as "high".
    */
   priority?: Priority;

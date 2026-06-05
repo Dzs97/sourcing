@@ -1549,6 +1549,12 @@ select.filter-chip {
   color: rgba(255, 255, 255, 0.42);
 }
 
+.targeting-tier-label-tertiary {
+  margin-top: 32px;
+  color: rgba(255, 255, 255, 0.32);
+  font-style: italic;
+}
+
 .targeting-tier-count {
   font-size: 10px;
   background: rgba(255, 255, 255, 0.08);

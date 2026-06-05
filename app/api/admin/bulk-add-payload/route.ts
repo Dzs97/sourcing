@@ -12,7 +12,7 @@ const VALID_DOMAINS: Domain[] = [
 ];
 const VALID_TYPES: EntryType[] = ["company", "school", "community", "competition"];
 const VALID_STATUSES: Status[] = ["new", "targeting", "tried", "blacklisted"];
-const VALID_PRIORITIES: Priority[] = ["high", "low"];
+const VALID_PRIORITIES: Priority[] = ["high", "low", "tertiary"];
 
 // Shared normalize — see lib/name-normalize.ts
 const normalize = fuzzyName;

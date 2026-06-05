@@ -104,6 +104,10 @@ export default function Home() {
     () => targeting.filter((e) => e.priority === "low"),
     [targeting]
   );
+  const targetingTertiary = useMemo(
+    () => targeting.filter((e) => e.priority === "tertiary"),
+    [targeting]
+  );
 
   const groupByDomain = (items: Entry[]) => {
     const groups: Record<string, Entry[]> = {};
@@ -122,6 +126,10 @@ export default function Home() {
   const targetingLowByDomain = useMemo(
     () => groupByDomain(targetingLow),
     [targetingLow]
+  );
+  const targetingTertiaryByDomain = useMemo(
+    () => groupByDomain(targetingTertiary),
+    [targetingTertiary]
   );
 
   // Legacy var for backwards compat — used by any remaining reference
@@ -178,7 +186,9 @@ export default function Home() {
   }
 
   async function togglePriority(id: string, current: Priority | undefined) {
-    const next: Priority = (current ?? "high") === "high" ? "low" : "high";
+    // 3-way cycle: high → low → tertiary → high
+    const c = current ?? "high";
+    const next: Priority = c === "high" ? "low" : c === "low" ? "tertiary" : "high";
     await fetch(`/api/pools/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -457,6 +467,67 @@ export default function Home() {
                                 className="t-action subtle"
                                 onClick={() => togglePriority(e.id, e.priority)}
                                 title="Promote to primary"
+                              >
+                                ↑
+                              </button>
+                              <button
+                                className="t-action"
+                                onClick={() => changeStatus(e.id, "tried")}
+                                title="Mark tried"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                className="t-action danger"
+                                onClick={() => {
+                                  if (
+                                    confirm(
+                                      `Blacklist "${e.name}"? It'll be hidden and excluded from suggestions.`
+                                    )
+                                  ) {
+                                    changeStatus(e.id, "blacklisted");
+                                  }
+                                }}
+                                title="Blacklist"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {targetingTertiaryByDomain.length > 0 && (
+              <>
+                <div className="targeting-tier-label targeting-tier-label-tertiary">
+                  Tertiary targets
+                  <span className="targeting-tier-count">
+                    {targetingTertiary.length}
+                  </span>
+                </div>
+                <div className="targeting-groups targeting-groups-tertiary">
+                  {targetingTertiaryByDomain.map(([domain, items]) => (
+                    <div key={`tertiary-${domain}`} className="targeting-group">
+                      <div className="targeting-group-head">
+                        <span className="targeting-group-name">{domain}</span>
+                        <span className="targeting-group-count">
+                          {items.length}
+                        </span>
+                      </div>
+                      <div className="targeting-list">
+                        {items.map((e) => (
+                          <div key={e.id} className="targeting-item">
+                            <span className="targeting-item-name">{e.name}</span>
+                            <div className="targeting-item-actions">
+                              <button
+                                className="t-action subtle"
+                                onClick={() => togglePriority(e.id, e.priority)}
+                                title="Cycle priority (→ primary)"
                               >
                                 ↑
                               </button>
