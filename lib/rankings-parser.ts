@@ -25,9 +25,16 @@ function toStr(v: unknown): string {
 export function parseRankingsWorkbook(buffer: ArrayBuffer): RankingsBundle {
   const wb = XLSX.read(buffer, { type: "array" });
 
-  const rankings = parseRankingsSheet(wb);
+  let rankings = parseRankingsSheet(wb);
   const recency = parseRecencySheet(wb);
   const { source_as_of, totals } = parseDashboard(wb);
+
+  // Fallback: when the file is a candidate-level calibration sheet (e.g. "Eng"
+  // tab from the Product & Engineering Sourcing doc) instead of the
+  // pre-aggregated Rankings/Recency/Dashboard structure, aggregate it ourselves.
+  if (rankings.length === 0) {
+    rankings = parseCandidateLevelSheet(wb);
+  }
 
   return {
     uploaded_at: Date.now(),
@@ -36,6 +43,106 @@ export function parseRankingsWorkbook(buffer: ArrayBuffer): RankingsBundle {
     recency,
     totals,
   };
+}
+
+/**
+ * Aggregate a candidate-level calibration sheet into company-level rankings.
+ *
+ * Each row is one sourced candidate with a "Calibration" verdict
+ * (Superstar / Yes / Maybe / No). We group by the candidate's "Current Company"
+ * and produce one Ranking per company.
+ *
+ * Score weighting: Superstar=5, Yes=2, Maybe=0.5, No=0. Companies with more
+ * superstars float to the top; companies with all No's drop to the bottom.
+ *
+ * Looks for a sheet named "Eng" first, then "Prod", then any sheet with both
+ * a "Current Company" and "Calibration" header.
+ */
+function parseCandidateLevelSheet(wb: XLSX.WorkBook): Ranking[] {
+  const sheetName = pickCandidateSheet(wb);
+  if (!sheetName) return [];
+
+  const ws = wb.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(ws, {
+    header: 1,
+    blankrows: false,
+    defval: null,
+  });
+  if (rows.length < 2) return [];
+
+  // Locate columns by header name (more robust than fixed E/G indices in case
+  // the upstream sheet's column order ever shifts).
+  const header = (rows[0] as unknown[]).map((c) => toStr(c).toLowerCase());
+  const companyCol = header.findIndex((h) => h === "current company");
+  const calibCol = header.findIndex((h) => h === "calibration");
+  if (companyCol === -1 || calibCol === -1) return [];
+
+  type Bucket = { superstar: number; yes: number; maybe: number; no: number };
+  const buckets = new Map<string, Bucket>();
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!Array.isArray(row)) continue;
+    const company = toStr(row[companyCol]);
+    if (!company) continue;
+    const calib = toStr(row[calibCol]).toLowerCase();
+
+    let b = buckets.get(company);
+    if (!b) {
+      b = { superstar: 0, yes: 0, maybe: 0, no: 0 };
+      buckets.set(company, b);
+    }
+    if (calib === "superstar") b.superstar++;
+    else if (calib === "yes") b.yes++;
+    else if (calib === "maybe") b.maybe++;
+    else if (calib === "no") b.no++;
+    // empty / "2027" / other noise is skipped silently
+  }
+
+  const aggregated = Array.from(buckets.entries()).map(([company, b]) => {
+    const total_votes = b.superstar + b.yes + b.maybe + b.no;
+    const total_score = b.superstar * 5 + b.yes * 2 + b.maybe * 0.5;
+    return {
+      company,
+      total_score,
+      total_votes,
+      superstar: b.superstar,
+      yes: b.yes,
+      maybe: b.maybe,
+      no: b.no,
+    };
+  });
+
+  // Rank by score descending, then by total_votes as tiebreak.
+  aggregated.sort((a, b) =>
+    b.total_score - a.total_score || b.total_votes - a.total_votes
+  );
+
+  return aggregated.map((r, i) => ({ rank: i + 1, ...r }));
+}
+
+function pickCandidateSheet(wb: XLSX.WorkBook): string | null {
+  const preferred = ["Eng", "Prod", "Engineering", "Product"];
+  for (const name of preferred) if (wb.Sheets[name]) return name;
+  // Otherwise scan all sheets for one with both required headers.
+  for (const name of wb.SheetNames) {
+    const ws = wb.Sheets[name];
+    const rows = XLSX.utils.sheet_to_json<unknown[]>(ws, {
+      header: 1,
+      blankrows: false,
+      defval: null,
+      range: 0,
+    });
+    if (!rows.length) continue;
+    const header = (rows[0] as unknown[]).map((c) => toStr(c).toLowerCase());
+    if (
+      header.includes("current company") &&
+      header.includes("calibration")
+    ) {
+      return name;
+    }
+  }
+  return null;
 }
 
 function parseRankingsSheet(wb: XLSX.WorkBook): Ranking[] {
