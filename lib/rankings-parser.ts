@@ -26,14 +26,16 @@ export function parseRankingsWorkbook(buffer: ArrayBuffer): RankingsBundle {
   const wb = XLSX.read(buffer, { type: "array" });
 
   let rankings = parseRankingsSheet(wb);
-  const recency = parseRecencySheet(wb);
+  let recency = parseRecencySheet(wb);
   const { source_as_of, totals } = parseDashboard(wb);
 
   // Fallback: when the file is a candidate-level calibration sheet (e.g. "Eng"
   // tab from the Product & Engineering Sourcing doc) instead of the
   // pre-aggregated Rankings/Recency/Dashboard structure, aggregate it ourselves.
   if (rankings.length === 0) {
-    rankings = parseCandidateLevelSheet(wb);
+    const agg = parseCandidateLevelSheet(wb);
+    rankings = agg.rankings;
+    if (recency.length === 0) recency = agg.recency;
   }
 
   return {
@@ -58,9 +60,12 @@ export function parseRankingsWorkbook(buffer: ArrayBuffer): RankingsBundle {
  * Looks for a sheet named "Eng" first, then "Prod", then any sheet with both
  * a "Current Company" and "Calibration" header.
  */
-function parseCandidateLevelSheet(wb: XLSX.WorkBook): Ranking[] {
+function parseCandidateLevelSheet(wb: XLSX.WorkBook): {
+  rankings: Ranking[];
+  recency: RecencyRecord[];
+} {
   const sheetName = pickCandidateSheet(wb);
-  if (!sheetName) return [];
+  if (!sheetName) return { rankings: [], recency: [] };
 
   const ws = wb.Sheets[sheetName];
   const rows = XLSX.utils.sheet_to_json<unknown[]>(ws, {
@@ -68,35 +73,67 @@ function parseCandidateLevelSheet(wb: XLSX.WorkBook): Ranking[] {
     blankrows: false,
     defval: null,
   });
-  if (rows.length < 2) return [];
+  if (rows.length < 2) return { rankings: [], recency: [] };
 
   // Locate columns by header name (more robust than fixed E/G indices in case
   // the upstream sheet's column order ever shifts).
   const header = (rows[0] as unknown[]).map((c) => toStr(c).toLowerCase());
   const companyCol = header.findIndex((h) => h === "current company");
   const calibCol = header.findIndex((h) => h === "calibration");
-  if (companyCol === -1 || calibCol === -1) return [];
+  const dateCol = header.findIndex((h) => h === "date");
+  const cohortCol = header.findIndex((h) => h === "cohort");
+  if (companyCol === -1 || calibCol === -1) {
+    return { rankings: [], recency: [] };
+  }
 
-  type Bucket = { superstar: number; yes: number; maybe: number; no: number };
+  type Bucket = {
+    superstar: number;
+    yes: number;
+    maybe: number;
+    no: number;
+    dates: number[]; // unix-ms timestamps of every dated candidate
+    cohorts: Set<string>;
+    total_rows: number; // includes rows with empty calibration / date
+  };
   const buckets = new Map<string, Bucket>();
+  const now = Date.now();
 
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
     if (!Array.isArray(row)) continue;
     const company = toStr(row[companyCol]);
     if (!company) continue;
-    const calib = toStr(row[calibCol]).toLowerCase();
 
     let b = buckets.get(company);
     if (!b) {
-      b = { superstar: 0, yes: 0, maybe: 0, no: 0 };
+      b = {
+        superstar: 0,
+        yes: 0,
+        maybe: 0,
+        no: 0,
+        dates: [],
+        cohorts: new Set(),
+        total_rows: 0,
+      };
       buckets.set(company, b);
     }
+    b.total_rows++;
+
+    const calib = toStr(row[calibCol]).toLowerCase();
     if (calib === "superstar") b.superstar++;
     else if (calib === "yes") b.yes++;
     else if (calib === "maybe") b.maybe++;
     else if (calib === "no") b.no++;
-    // empty / "2027" / other noise is skipped silently
+    // empty / "2027" / other noise is skipped for calibration counting
+
+    if (dateCol !== -1) {
+      const ts = parseFlexibleDate(row[dateCol], now);
+      if (ts !== null) b.dates.push(ts);
+    }
+    if (cohortCol !== -1) {
+      const c = toStr(row[cohortCol]);
+      if (c) b.cohorts.add(c);
+    }
   }
 
   const aggregated = Array.from(buckets.entries()).map(([company, b]) => {
@@ -110,15 +147,99 @@ function parseCandidateLevelSheet(wb: XLSX.WorkBook): Ranking[] {
       yes: b.yes,
       maybe: b.maybe,
       no: b.no,
+      bucket: b,
     };
   });
 
   // Rank by score descending, then by total_votes as tiebreak.
-  aggregated.sort((a, b) =>
-    b.total_score - a.total_score || b.total_votes - a.total_votes
+  aggregated.sort(
+    (a, b) =>
+      b.total_score - a.total_score || b.total_votes - a.total_votes
   );
 
-  return aggregated.map((r, i) => ({ rank: i + 1, ...r }));
+  const rankings: Ranking[] = aggregated.map((r, i) => ({
+    rank: i + 1,
+    company: r.company,
+    total_score: r.total_score,
+    total_votes: r.total_votes,
+    superstar: r.superstar,
+    yes: r.yes,
+    maybe: r.maybe,
+    no: r.no,
+  }));
+
+  // Recency: median sourcing date per company. Companies with no dated rows
+  // get a placeholder (median omitted, days_ago=0) so the row still surfaces;
+  // the UI's "overdue" logic relies on days_ago >= threshold, so 0 means
+  // "not overdue" which is the right default for unknown.
+  const recency: RecencyRecord[] = aggregated.map((r, i) => {
+    const dates = r.bucket.dates;
+    let median_sourcing_date = "";
+    let days_ago = 0;
+    if (dates.length > 0) {
+      const sorted = [...dates].sort((a, b) => a - b);
+      const mid =
+        sorted.length % 2 === 1
+          ? sorted[(sorted.length - 1) / 2]
+          : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2;
+      median_sourcing_date = isoDay(mid);
+      days_ago = Math.max(0, Math.round((now - mid) / (1000 * 60 * 60 * 24)));
+    }
+    return {
+      rank: i + 1,
+      company: r.company,
+      median_sourcing_date,
+      days_ago,
+      num_candidates: r.bucket.total_rows,
+      num_cohorts: r.bucket.cohorts.size,
+    };
+  });
+
+  return { rankings, recency };
+}
+
+/**
+ * Parse the messy date column from a sourcing sheet. The Eng tab uses bare
+ * "M/D" with the current year implied; the dashboard sometimes ships
+ * "M/D/YY" or "M/D/YYYY"; the underlying xlsx can also surface Excel serial
+ * date numbers (days since 1899-12-30). Returns unix-ms or null.
+ */
+function parseFlexibleDate(v: unknown, nowMs: number): number | null {
+  if (v === null || v === undefined || v === "") return null;
+  // Excel serial date number → days since 1899-12-30
+  if (typeof v === "number" && Number.isFinite(v) && v > 30000 && v < 80000) {
+    return (v - 25569) * 86400 * 1000; // 25569 = days from 1970-01-01 to 1899-12-30 offset
+  }
+  const s = String(v).trim();
+  if (!s) return null;
+  const parts = s.split("/");
+  if (parts.length === 2) {
+    // "M/D" — assume the year the sheet is current for (today's year)
+    const m = parseInt(parts[0], 10);
+    const d = parseInt(parts[1], 10);
+    if (!Number.isFinite(m) || !Number.isFinite(d)) return null;
+    const year = new Date(nowMs).getUTCFullYear();
+    return Date.UTC(year, m - 1, d);
+  }
+  if (parts.length === 3) {
+    const m = parseInt(parts[0], 10);
+    const d = parseInt(parts[1], 10);
+    let y = parseInt(parts[2], 10);
+    if (!Number.isFinite(m) || !Number.isFinite(d) || !Number.isFinite(y)) {
+      return null;
+    }
+    if (y < 100) y += 2000;
+    return Date.UTC(y, m - 1, d);
+  }
+  return null;
+}
+
+function isoDay(ms: number): string {
+  const d = new Date(ms);
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function pickCandidateSheet(wb: XLSX.WorkBook): string | null {
