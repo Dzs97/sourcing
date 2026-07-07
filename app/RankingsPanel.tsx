@@ -175,6 +175,17 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
     const q = search.trim().toLowerCase();
     if (q) {
       base = base.filter((r) => r.company.toLowerCase().includes(q));
+      // Spillover: on the all-tracker view, also include ranked-but-untracked
+      // companies that match the query. Without this, searching e.g. "David AI"
+      // returns nothing here even though it exists in the rankings — because
+      // the base is built from tracker entries only.
+      if (tab === "all-tracker") {
+        const already = new Set(base.map((r) => r.company.toLowerCase()));
+        for (const r of bundle.rankings) {
+          if (already.has(r.company.toLowerCase())) continue;
+          if (r.company.toLowerCase().includes(q)) base.push(r);
+        }
+      }
     }
 
     // Sort
