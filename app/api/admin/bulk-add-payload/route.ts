@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 const VALID_DOMAINS: Domain[] = [
   "frontier-ai", "healthcare-ai", "insurtech", "defense", "infra-devtools",
   "bio-ai", "research-lab", "fintech", "vertical-saas", "cs-school",
-  "elite-hs", "fellowship", "olympiad", "open-source", "neos-portco", "other",
+  "elite-hs", "fellowship", "olympiad", "open-source", "neos-portco",
+  "korea-sourcing", "other",
 ];
 const VALID_TYPES: EntryType[] = ["company", "school", "community", "competition"];
 const VALID_STATUSES: Status[] = ["new", "targeting", "tried", "blacklisted"];
