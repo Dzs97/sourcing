@@ -1621,42 +1621,37 @@ select.filter-chip {
 }
 
 /* Matrix — per-function accent glow. Uses the existing domain palette
-   so the section colors read as part of the same design system. */
-.matrix-function { position: relative; }
-.matrix-function::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: 12px;
-  padding: 1px;
-  background: linear-gradient(135deg, var(--glow, transparent), transparent 55%);
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.85;
+   so the section colors read as part of the same design system. Glow
+   lives ENTIRELY OUTSIDE the card so it never competes with chip
+   readability inside. */
+.matrix-function {
+  position: relative;
+  isolation: isolate;
+  box-shadow: 0 0 0 1px var(--border), 0 0 40px -6px var(--glow-shadow, transparent);
 }
 .matrix-function::after {
   content: "";
   position: absolute;
-  top: -18px;
-  left: -18px;
-  right: -18px;
-  bottom: -18px;
-  border-radius: 20px;
-  background: radial-gradient(60% 45% at 50% 0%, var(--glow-halo, transparent), transparent 70%);
+  inset: -32px;
+  border-radius: 22px;
+  background: radial-gradient(
+    55% 50% at 50% 50%,
+    var(--glow-halo, transparent),
+    transparent 72%
+  );
   pointer-events: none;
   z-index: -1;
-  opacity: 0.55;
+  opacity: 0.65;
+  filter: blur(6px);
 }
-.matrix-function > * { position: relative; z-index: 1; }
 
-.matrix-function[data-function="finance"] { --glow: var(--d-fintech-text); --glow-halo: var(--d-fintech); }
-.matrix-function[data-function="legal"] { --glow: var(--d-insurtech-text); --glow-halo: var(--d-insurtech); }
-.matrix-function[data-function="engineering"] { --glow: var(--d-infra-text); --glow-halo: var(--d-infra); }
-.matrix-function[data-function="design"] { --glow: var(--d-health-text); --glow-halo: var(--d-health); }
-.matrix-function[data-function="growth"] { --glow: var(--d-bio-text); --glow-halo: var(--d-bio); }
-.matrix-function[data-function="ops"] { --glow: var(--d-defense-text); --glow-halo: var(--d-defense); }
+.matrix-function[data-function="finance"] { --glow-halo: var(--d-fintech); --glow-shadow: rgba(91,63,214,0.25); }
+.matrix-function[data-function="legal"] { --glow-halo: var(--d-insurtech); --glow-shadow: rgba(181,74,31,0.22); }
+.matrix-function[data-function="engineering"] { --glow-halo: var(--d-infra); --glow-shadow: rgba(10,110,156,0.22); }
+.matrix-function[data-function="design"] { --glow-halo: var(--d-health); --glow-shadow: rgba(200,52,92,0.20); }
+.matrix-function[data-function="growth"] { --glow-halo: var(--d-bio); --glow-shadow: rgba(13,107,70,0.22); }
+.matrix-function[data-function="ops"] { --glow-halo: var(--d-defense); --glow-shadow: rgba(107,85,0,0.20); }
 
 @media (prefers-color-scheme: dark) {
-  .matrix-function::before { opacity: 0.55; }
-  .matrix-function::after { opacity: 0.28; }
+  .matrix-function::after { opacity: 0.32; }
 }
