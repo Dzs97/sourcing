@@ -1580,3 +1580,42 @@ select.filter-chip {
 .t-action.subtle:hover {
   opacity: 0.95;
 }
+
+/* ============================================================
+   MATRIX PANEL — sourcing criteria by function → role
+   ============================================================ */
+.matrix { max-width: var(--content-max); margin: 0 auto; padding: 32px 24px 80px; }
+.matrix-header { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border, #e5e7eb); }
+.matrix-title { font-size: 28px; font-weight: 700; margin: 0 0 8px; }
+.matrix-sub { color: var(--muted, #6b7280); font-size: 14px; line-height: 1.5; }
+.matrix-function { border: 1px solid var(--border, #e5e7eb); border-radius: 12px; margin-bottom: 16px; overflow: hidden; background: var(--card, #fff); }
+.matrix-function-head { width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: transparent; border: none; cursor: pointer; text-align: left; font-family: inherit; }
+.matrix-function-head:hover { background: rgba(0,0,0,0.02); }
+.matrix-caret { font-size: 14px; color: var(--muted, #6b7280); width: 12px; }
+.matrix-function-name { font-size: 18px; font-weight: 600; flex: 1; }
+.matrix-role-count { font-size: 12px; color: var(--muted, #6b7280); text-transform: uppercase; letter-spacing: 0.03em; }
+.matrix-function-body { padding: 8px 20px 20px; border-top: 1px solid var(--border, #e5e7eb); }
+.matrix-note { font-style: italic; color: var(--muted, #6b7280); font-size: 13px; padding: 12px 0; }
+.matrix-shared { margin: 16px 0; padding: 16px; background: rgba(0,0,0,0.02); border-radius: 8px; }
+.matrix-shared-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted, #6b7280); margin-bottom: 12px; }
+.matrix-role { margin: 20px 0; padding: 16px; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; }
+.matrix-role-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.matrix-role-name { font-size: 16px; font-weight: 600; }
+.matrix-role-status { font-size: 11px; margin-left: 8px; padding: 2px 6px; border-radius: 4px; background: #fef3c7; color: #92400e; font-weight: 600; }
+.matrix-role-yoe { font-size: 12px; color: var(--muted, #6b7280); font-variant-numeric: tabular-nums; }
+.matrix-role-profile { margin: 8px 0 14px 0; padding-left: 18px; font-size: 13px; color: var(--text, #374151); line-height: 1.6; }
+.matrix-role-profile li { margin: 2px 0; }
+.matrix-group { margin: 10px 0; }
+.matrix-group-label { font-size: 12px; font-weight: 600; color: var(--text, #374151); margin-bottom: 6px; }
+.matrix-group-count { color: var(--muted, #9ca3af); font-weight: 400; }
+.matrix-group-items { display: flex; flex-wrap: wrap; gap: 6px; }
+.matrix-chip { display: inline-block; padding: 3px 10px; background: rgba(0,0,0,0.04); border: 1px solid var(--border, #e5e7eb); border-radius: 999px; font-size: 12px; color: var(--text, #374151); line-height: 1.4; }
+.matrix-expand { margin-top: 6px; background: none; border: none; color: var(--accent, #2563eb); font-size: 12px; cursor: pointer; padding: 4px 0; font-family: inherit; }
+.matrix-expand:hover { text-decoration: underline; }
+
+@media (prefers-color-scheme: dark) {
+  .matrix-shared { background: rgba(255,255,255,0.03); }
+  .matrix-chip { background: rgba(255,255,255,0.06); }
+  .matrix-role-status { background: #78350f; color: #fef3c7; }
+  .matrix-function-head:hover { background: rgba(255,255,255,0.03); }
+}

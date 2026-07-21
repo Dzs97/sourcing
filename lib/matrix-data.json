@@ -1,0 +1,200 @@
+{
+  "title": "Sourcing Criteria Matrix",
+  "functions": [
+    {
+      "function": "Finance (G&A)",
+      "note": "Shared targets and schools across the finance ladder; YoE and profile differ by level.",
+      "sharedTargets": [
+        {"label": "Investment banks", "items": ["Goldman Sachs", "Morgan Stanley", "JPMorgan", "Evercore", "Centerview", "Lazard", "PJT", "PWP (Perella Weinberg Partners)"]},
+        {"label": "Private equity", "items": ["Blackstone", "KKR", "Carlyle", "Bain Capital", "TPG", "Vista", "Apollo", "Thoma Bravo", "Silver Lake", "Warburg Pincus", "Advent", "Oaktree", "Ares Capital", "Insight Partners", "General Atlantic", "EQT", "CVC", "Clayton Dubilier & Rice", "TA Associates", "Permira", "Neuberger Berman"]},
+        {"label": "Hedge funds (equity, non-quant)", "items": ["Millennium Management", "Tiger Global", "Point72", "Citadel", "Ashler", "Surveyor", "Marshall Wace", "Coatue", "Brevan Howard", "Wellington Management", "Bridgewater Associates", "D. E. Shaw & Co.", "Paulson & Co.", "Lone Pine Capital", "Matrix Capital Management", "Maverick Capital", "Viking Global Investors", "Man Group", "Elliott Investment Management", "Davidson Kempner", "Balyasny", "Pershing Square", "Partners Group", "Sculptor Management", "Baupost Group", "Farallon Capital", "Two Sigma", "Appaloosa", "Rokos"]},
+        {"label": "Strategic finance teams", "items": ["AI-native companies", "xAI", "OpenAI", "Anthropic", "Morgan Stanley Technology Group"]},
+        {"label": "Profile signals", "items": ["Classically trained (IB/PE) then moved into startups", "Banking/PE → startup movers (few yrs banking + 1)", "US-based hedge fund experience", "Bridgewater recent grads"]}
+      ],
+      "sharedSchools": [
+        {"label": "Schools (good experience trumps school)", "items": ["All Ivy League (Harvard, Yale, Dartmouth, Cornell, UPenn, Columbia, Princeton, Brown)", "MIT", "Stanford", "Berkeley", "UCLA", "Carnegie Mellon (CMU)", "Duke", "University of Chicago", "Northwestern", "USC", "NYU"]}
+      ],
+      "roles": [
+        {"role": "Head of Finance", "yoe": "8–10 yrs", "profile": ["Classically trained finance pro (IB/PE) moved into startups", "Startup experience preferred", "Good company/school"]},
+        {"role": "Finance Lead", "yoe": "4–7 yrs", "profile": ["Good company/school", "Startup experience preferred", "Leader/manager experience", "Finance/Economics degree"]},
+        {"role": "Finance Associate", "yoe": "1–3 yrs", "profile": ["Good company/school", "Investment banking experience", "Finance/Economics degree"]},
+        {"role": "Finance (general track)", "yoe": "5–10 yrs / 5–7 yrs (3 yrs IB); class of 2012 hard cutoff, MBA thru 2020", "profile": ["Deep IB + 2–3 top investment firms (PE/HF)", "Equity, non-quant HF focus"]}
+      ]
+    },
+    {
+      "function": "Legal (G&A)",
+      "roles": [
+        {
+          "role": "Legal Counsel",
+          "yoe": "5–10 yoe (2 yrs at a law firm + tech/startup experience)",
+          "profile": ["2 years at a law firm plus tech / startup experience"],
+          "targets": [
+            {"label": "UK law firms", "items": ["Allen & Overy (A&O)", "Slaughter and May", "Ashurst", "A&O Shearman", "DLA Piper"]},
+            {"label": "Korean law firms", "items": ["Kim & Chang", "Lee & Ko", "Bae, Kim & Lee", "Yulchon", "Shin & Kim", "Jipyong", "DR & AJU", "Barun Law", "HMP Law", "Seum Law"]},
+            {"label": "Chinese law firms", "items": ["King & Wood Mallesons", "Fangda Partners", "JunHe", "Zhong Lun", "Haiwen & Partners", "Han Kun", "Jingtian & Gongcheng", "Dentons (大成)", "Herbert Smith Freehills", "Linklaters"]},
+            {"label": "Law tech / startup-focused firms", "items": ["Gunderson Dettmer", "Wilson Sonsini (WSGR)", "Fenwick & West / FLEX", "Cooley", "Morrison & Foerster"]},
+            {"label": "US law firms (Big Law)", "items": ["Latham & Watkins", "Skadden", "Sidley Austin", "Gibson Dunn", "Paul Weiss", "O'Melveny & Myers", "Goodwin", "Ropes & Gray", "Debevoise & Plimpton", "Simpson Thacher", "Covington & Burling", "Davis Polk", "WilmerHale", "Perkins Coie", "Cravath", "Wachtell", "Sullivan & Cromwell", "Kirkland & Ellis", "White & Case", "Cleary Gottlieb", "Freshfields", "Linklaters", "Paul Hastings", "Williams & Connolly", "Clifford Chance", "Orrick", "Sheppard Mullin", "Manatt", "Loeb & Loeb", "Pillsbury", "Munger Tolles", "Arnold & Porter", "Greenberg Traurig", "Reed Smith", "Hunton Andrews Kurth", "Hughes Hubbard & Reed", "ArentFox Schiff", "King & Spalding"]}
+          ]
+        }
+      ]
+    },
+    {
+      "function": "Engineering",
+      "roles": [
+        {
+          "role": "Product / Founding Engineer",
+          "yoe": "1–6 yrs",
+          "profile": ["Product engineer / founding engineer", "Top school + SF-based", "Founding engineers across Tier 1 / Tier 2 schools (SF, NY)", "Re-reach candidates who previously rejected us"],
+          "targets": [
+            {"label": "Fellowships", "items": ["OpenAI", "Anthropic", "Databricks", "Kleiner Perkins", "Contrary Fellows", "Codepoint Fellows", "8VC Fellow", "D. E. Shaw research fellowship", "Neo (job board, except GPTZero, Valon)", "Accel Scholars"]},
+            {"label": "Talent pipelines", "items": ["micro1", "Recent YC batches (W/X/S/F)", "YC23, YC24", "Stanford BASES"]},
+            {"label": "VC portfolios", "items": ["Sequoia", "a16z", "Thrive", "Index", "General Catalyst", "Accel", "Greylock", "Founders Fund", "Benchmark", "Conviction", "Khosla Ventures", "Menlo Ventures", "8VC", "Bain Capital Ventures", "Iconiq", "IVP", "20VC", "Redpoint", "Lux", "Insight", "GV", "CRV", "Battery Ventures", "Lightspeed", "Bessemer", "NEA", "Coatue", "Dragoneer", "Chemistry VC"]},
+            {"label": "Funds", "items": ["OpenAI Startup Fund", "NVIDIA NVentures", "Anthology Fund", "Bezos Expeditions"]},
+            {"label": "Investor themes", "items": ["Fintech (Accel)", "Infra/devtools (General Catalyst): Applovin, Brex, Palantir", "Infra/Devtools (Thrive)", "Thrive / Index Fintech"]},
+            {"label": "Company targets", "items": ["Graphite", "Retool", "Warp", "Foundry", "Loop", "Factory", "Merge", "Tennr (YC W23)", "Cursor", "Figma", "Robinhood", "Applovin", "Brex", "Palantir", "Anduril", "SpaceX", "Saronic", "Paraform", "Ando AI", "Monaco", "Goblins", "AI-native companies shared by Jensen"]},
+            {"label": "IPO / scale filter", "items": ["IPO'd in last 2–4 years, not huge (<4,000 employees)"]},
+            {"label": "Liberal arts colleges (new grads, ≥1 eng internship)", "items": ["Haverford", "Bowdoin", "Swarthmore", "Pomona", "Carleton", "Claremont", "Harvey Mudd", "Davidson", "Amherst", "Williams"]},
+            {"label": "Schools — Tier 2", "items": ["Duke", "U Chicago", "Johns Hopkins", "Rice", "Northwestern"]},
+            {"label": "Schools — international", "items": ["ETH Zurich", "EPFL", "TUM", "Oxford", "Cambridge", "Technion (Israel)", "École Polytechnique"]},
+            {"label": "Olympiads & awards", "items": ["AIME", "IMO", "IOI", "IPhO (Physics)", "Putnam Fellows", "ICPC finalists", "Knight-Hennessy", "Coca-Cola scholars"]},
+            {"label": "Research labs", "items": ["Christopher Ré (HazyResearch)", "Coley's lab", "MILA (Montreal, Yoshua Bengio)", "Vector Institute", "Alan Turing Institute", "DeepMind (London / Poland / Zurich alum)", "Weizmann Institute"]},
+            {"label": "ML / NLP conference authors", "items": ["NeurIPS", "ICML", "ICLR", "ACL", "EACL", "NAACL", "EMNLP"]},
+            {"label": "HK high schools", "items": ["St. Paul's Co-educational College", "Diocesan Boy's School", "Diocesan Girl's School", "La Salle College"]},
+            {"label": "Israel", "items": ["IDF / Hebrew + top schools", "Israeli Military Intelligence", "Israeli Air Force", "Hebrew + CS/Physics/Math", "Technion", "Harvard / Princeton Israel Trek"]},
+            {"label": "Geo / misc", "items": ["Swedish people", "HK people", "UK / French labs", "Stealth startups + top schools", "Frontier AI labs", "Sauron"]}
+          ]
+        },
+        {
+          "role": "Mechanical Engineer",
+          "yoe": "—",
+          "status": "HOLD",
+          "profile": ["On hold"],
+          "targets": [
+            {"label": "Competitions", "items": ["Solar car competition winners (Berkeley, Stanford, other winning teams)"]}
+          ]
+        }
+      ]
+    },
+    {
+      "function": "Design",
+      "roles": [
+        {
+          "role": "SF Product Designer / Design Engineer",
+          "yoe": "New grad – 2 yrs",
+          "profile": ["UI/UX + product experience", "Majors: product design; tech + art", "Korean language a plus", "Contractor option available"],
+          "targets": [
+            {"label": "Top schools", "items": ["MIT", "Stanford", "Ivy (Harvard, Dartmouth, UPenn, Yale, Cornell, Brown, Columbia, Princeton)", "UC Berkeley", "UCLA", "Duke", "UChicago", "CMU", "Oxford", "Cambridge", "Tsinghua", "Peking", "National Taiwan University"]},
+            {"label": "Art schools (new grads, 1–2 yrs, + AI clubs)", "items": ["Academy of Art", "RISD / Brown", "SCAD", "CCA", "Parsons", "ArtCenter"]},
+            {"label": "Design fellowships", "items": ["Kleiner Perkins Design Fellows", "8VC Design Fellowship", "Bessemer Fellows"]},
+            {"label": "Frontier AI labs", "items": ["Anthropic", "OpenAI", "xAI", "Mistral AI", "SSI"]},
+            {"label": "AI-native product companies", "items": ["Perplexity", "Cursor / Anysphere", "Character AI", "Glean", "ElevenLabs", "Sierra AI", "Speak", "Sesame", "Gamma", "Granola", "Clay", "Warp", "Arc / The Browser Company", "Linear", "Vercel / v0"]},
+            {"label": "AI code & dev tools", "items": ["Replit", "Cognition", "Windsurf / Codeium", "Magic AI", "Poolside AI", "Lovable", "Bolt / StackBlitz"]},
+            {"label": "AI creative & media", "items": ["Midjourney", "Runway", "Pika", "Luma AI", "Suno", "Ideogram", "Kling AI", "Captions", "HeyGen", "Photoroom"]},
+            {"label": "AI agents & workflow", "items": ["Sierra AI", "11x.ai", "Decagon", "Dust", "Sycamore"]},
+            {"label": "AI for verticals", "items": ["Harvey", "Ambience Healthcare", "Mercor", "Figma"]}
+          ]
+        },
+        {
+          "role": "UX Designer — Korea",
+          "yoe": "2–5 yrs",
+          "profile": ["Skillset: UX writing", "Reference: NAE Product Designer JD"],
+          "targets": [
+            {"label": "Top UX groups", "items": ["Toss (UX writing team)", "SK Telecom", "Naver (esp. revamped Naver Map)", "Hyundai Card", "LG U+"]},
+            {"label": "Top startups", "items": ["Hey Dealer", "Zigzag", "Karrot"]},
+            {"label": "Agencies — Tier 1", "items": ["PXD", "Plus X", "Cheil"]},
+            {"label": "Agencies — Tier 2", "items": ["Duotone", "BAT", "PTKOREA", "Vinyl C"]},
+            {"label": "Agencies — TBD", "items": ["Studio FNT", "Ordinary People", "CFC (Contents for Contents)", "Triangle Studio", "Sawol", "Double D", "Design Fever", "HXX", "Brenden", "Everyday Practice", "Superverymore", "가지공장", "Interbrand", "GiantStep", "RightBrain", "Inition Inc.", "POSTYPE", "Lisn Design", "Salt Cake"]},
+            {"label": "Schools — overseas", "items": ["SVA (NY)", "ArtCenter (LA)", "Pratt (NY)", "Parsons (NY)", "CalArts (LA)", "Art Institute of Chicago (IL)", "RISD (RI)", "SCAD"]},
+            {"label": "Schools — Korea", "items": ["Hongik (Visual/Multimedia design)", "Kookmin University", "Korea National University of Arts", "Seoul National University", "Konkuk University", "Ewha Womans University", "Kyunghee University", "Hanyang University", "Sookmyung University", "KAIST", "PaTI (Paju Typography Institute)", "SADI"]},
+            {"label": "Design programs", "items": ["Apple Developer Academy @ POSTECH", "Samsung Design Membership (SDM)"]}
+          ]
+        },
+        {
+          "role": "Brand Designer — Korea",
+          "yoe": "2–5 yrs",
+          "profile": ["Brand / BD / BX designer keywords + Korea"],
+          "targets": [
+            {"label": "Target companies", "items": ["Hybe (current / past)", "Toss", "SM Entertainment"]},
+            {"label": "Agencies — Tier 1 (great & famous)", "items": ["Cheil", "Plus X", "Studio FNT", "Ordinary People"]},
+            {"label": "Agencies — Tier 2 (great, less famous)", "items": ["Studio Bbareunson", "Found Founded", "ORKR"]},
+            {"label": "Boutique (1–2 person, great skill)", "items": ["Studio Werk", "Sulki & Min"]}
+          ]
+        }
+      ]
+    },
+    {
+      "function": "Growth",
+      "note": "One role sourced across regions. Shared profile: banking/markets background, 3–6 yrs; language filters map to target regions.",
+      "sharedTargets": [
+        {"label": "Profile & sourcing", "items": ["Banking/markets background (GS/MS/JPM) with keywords: trader, fund, trading, markets, analyst, equity, credit, sales, derivatives, rates, associate", "3–6 years of experience", "Advisory: Evercore, Centerview, Lazard, PJT, PWP", "Rhodes Scholars, Schwarzman Scholars", "Co-founder / YC filters"]},
+        {"label": "Target universities (applied broadly)", "items": ["UK: Oxford, Cambridge, LSE, Imperial, UCL", "Australia: Melbourne, Sydney, ANU, UNSW, Monash", "Europe: ETH Zurich, EPFL, Bocconi, St. Gallen, SSE Stockholm, TUM, LMU, Amsterdam, KU Leuven, Trinity Dublin, Utrecht, Copenhagen, Helsinki, Karolinska, Heidelberg", "Singapore: NUS, NTU, SMU, SUTD, SIT", "Hong Kong: HKU, HKUST, CUHK, CityU, PolyU", "China: Peking, Tsinghua, Fudan, Shanghai Jiao Tong, Zhejiang", "Canada: Toronto, McGill, UBC, Waterloo, Alberta"]},
+        {"label": "Arabic speakers — top universities", "items": ["France: HEC Paris, ESSEC, ESCP, École Polytechnique, Paris Dauphine-PSL", "Egypt: AUC, Cairo, Alexandria, Ain Shams, GUC", "UAE: NYU Abu Dhabi, Khalifa, AUS, UAEU, Sharjah", "Lebanon: AUB, USJ, LAU, Lebanese University, NDU", "Morocco: UM6P, UIR, Cadi Ayyad, Mohammed V, Hassan II", "Saudi Arabia: KAUST, King Saud, KFUPM, PNU, KAU", "Qatar: Qatar Univ, HBKU, Weill Cornell-Qatar, Texas A&M Qatar, CMU Qatar", "Kuwait: Kuwait Univ, GUST, AUK, Arab Open University", "Tunisia: Tunis El Manar, Carthage, Sfax, MSB, Sousse"]},
+        {"label": "Malay & Thai speakers — top universities", "items": ["Germany: TUM, LMU, Heidelberg, RWTH Aachen, Humboldt Berlin", "Japan: Tokyo, Kyoto, Osaka, Tohoku, Keio", "South Korea: SNU, KAIST, POSTECH, Yonsei, Korea University", "Taiwan: NTU, NTHU, NYCU, NCKU, NTUST"]}
+      ],
+      "roles": [
+        {
+          "role": "Growth — Thailand",
+          "yoe": "3–6 yrs",
+          "profile": ["Thailand founders", "UK/JP/HK/AUS/US-educated Thais", "Thai people from Singapore", "Foreign-educated founders"],
+          "targets": [
+            {"label": "Local high schools", "items": ["Triamudom", "Satit Patumwan"]},
+            {"label": "International high schools", "items": ["Bangkok Patana (BPS)", "International School Bangkok (ISB)", "Shrewsbury", "NIST", "Ruamrudee"]},
+            {"label": "Universities", "items": ["Chulalongkorn", "Thammasat", "Mahidol"]},
+            {"label": "Consultants", "items": ["McKinsey", "BCG", "Bain"]},
+            {"label": "Banks", "items": ["Morgan Stanley", "JPM", "GS IB", "Phatra", "SCB"]},
+            {"label": "Private equity", "items": ["Lakeshore PE"]},
+            {"label": "Late-stage tech (strategy / operators / PMs)", "items": ["Agoda", "Shopee", "Lazada", "Grab", "Bitkub", "KBTG", "SCB X"]},
+            {"label": "Management trainees", "items": ["Unilever", "Thai Bev", "Central Group (strategy)", "Central Retail", "Central Pattana", "CP"]},
+            {"label": "Early-stage tech / VC portcos", "items": ["Beacon VC", "SCB 10x", "Monk's Hill Ventures", "Rise", "Wavemaker Impact", "Vertex Ventures", "Quona Capital", "Pantera Capital", "LINE MAN Wongnai", "Carro", "Jitta", "FlowAccount", "EventPop", "Traveloka", "and others (full portco list retained)"]}
+          ]
+        },
+        {
+          "role": "Growth — Malaysia",
+          "yoe": "3–6 yrs",
+          "profile": ["Archetype: Growth/Strategy/BizOps/Product", "UK/AUS-educated; people do come back to Malaysia", "Consulting > banking", "Malay / Chinese / Indian; Chinese language filter + job titles", "Malaysians in Singapore; Malaysia founders"],
+          "targets": [
+            {"label": "Late-stage tech", "items": ["Shopee", "Agoda", "Lazada", "Grab"]},
+            {"label": "Consultants", "items": ["McKinsey", "BCG", "Bain", "AirWallex (recruited many BCGers in SEA)"]},
+            {"label": "Private equity", "items": ["Khazanah", "Creador", "Navis Capital Partners", "Dymon"]},
+            {"label": "Top VCs / incubators", "items": ["Gobi Partners", "Cradle Fund / CSV", "1337 Ventures", "MAVCAP", "Sunway iLabs / Sunway Ventures", "MTDC", "Vynn Capital", "Kairous Capital", "AgroBank / Agropreneur Incubator", "Enceladus / Indelible Ventures", "Peak XV / GGV-backed"]},
+            {"label": "International / private high schools", "items": ["ISKL", "Garden International School", "Alice Smith School", "Mont'Kiara International (M'KIS)", "Sunway International School"]},
+            {"label": "Scholarships", "items": ["Petronas scholarship (PESP)", "Rhodes Scholars"]},
+            {"label": "Insurance strategy", "items": ["AIA / Prudential strategy / actuaries"]}
+          ]
+        },
+        {
+          "role": "Growth — Middle East",
+          "yoe": "< 6 yrs",
+          "profile": ["AUB / top US or UK school + fluent Arabic", "Based in Middle East or NYC / Boston / SF / London", "Previous co-founder experience (ideally consulting then own startup); YC experience"],
+          "targets": [
+            {"label": "Startups", "items": ["Kitopi", "Pure Harvest Smart Farms", "Tabby", "Tamara", "STARZPLAY", "Careem", "Property Finder", "Astra Tech", "Swvl", "AppsFlyer", "Floward", "Ziina", "Eat App", "Instashop", "Ureed", "Pony.ai"]},
+            {"label": "Sequoia-backed (ME exposure)", "items": ["Tabby", "Huspy", "Aither", "Alaan", "Vault Wealth", "Amaani (AÏZA)", "Kela", "Decart", "Apex Security", "StarkWare", "Oasis Security", "Armis", "Cyera", "Wiz", "Joby Aviation"]},
+            {"label": "Israeli tech (large list)", "items": ["Wiz", "JFrog", "Wix", "Fiverr", "Melio", "Papaya Global", "HiBob", "Yotpo", "Forter", "BigID", "Claroty", "Aqua Security", "Lightricks", "Moon Active", "and others (full list retained)"]},
+            {"label": "Defense tech — UAE", "items": ["EDGE Group", "ADASI", "HALCON", "CONDOR", "LAHAB Defence", "International Golden Group", "Calidus", "NIMR Automotive", "CARACAL", "Abu Dhabi Ship Building", "EDIC", "GR7 Defence", "AI71"]},
+            {"label": "Defense tech — Israel", "items": ["IAI", "Rafael", "Elbit Systems", "ELTA Systems", "IMI Systems", "Aeronautics", "RADA", "Controp", "UVision Air", "Xtend", "ThirdEye Systems", "Sentrycs", "SpearUAV", "BlueBird Aero", "Smart Shooter", "Kela Technologies", "Dream Security", "Commcrete"]}
+          ]
+        }
+      ]
+    },
+    {
+      "function": "Operations / Product — Korea",
+      "roles": [
+        {
+          "role": "Operations — Korea",
+          "yoe": "1–3 yrs",
+          "profile": ["Hungry, willing to die", "Relaxed school filters — look for folks already in the startup ecosystem", "Superstar profiles: Project Manager / Product Owner / Strategy / Data Analyst", "EXCLUDE: localization managers (translation / cultural adaptation focus)"],
+          "targets": [
+            {"label": "Schools", "items": ["Hongik", "Hanyang", "Kyunghee", "Korean Minjok Leadership Academy (KMLA)", "Konkuk", "Ewha", "Chungang", "Sungkyunkwan", "Yonsei Underwood", "Korea University", "SNU"]},
+            {"label": "University clubs — SNU", "items": ["SNU Interdisciplinary Major in AI", "AIIS (AI Institute of SNU)", "SNU IPAI", "Graduate School of Data Science", "WaffleStudio", "GDSC SNU"]},
+            {"label": "University clubs — Yonsei", "items": ["YAI (Yonsei Artificial Intelligence)", "YBIGTA (Big Data)", "GDSC Yonsei"]},
+            {"label": "University clubs — Korea University", "items": ["AIKU", "KUBIG", "KUCC", "GDSC Korea University", "DevKor"]},
+            {"label": "University clubs — KAIST", "items": ["SPARCS", "GoN (security)", "DSAIL", "SAIL (Statistical AI Lab)", "MLILAB", "SIML", "KIXLAB", "iAI Lab"]},
+            {"label": "Cross-university", "items": ["HAYAKU (with brAIn)", "GDSC Korea (all chapters)", "Korea AI Labs (180+ labs DB across SKY + KAIST + POSTECH)"]},
+            {"label": "Target companies", "items": ["Wrtn", "Liner", "Twelve Labs", "Upstage", "Carat", "QANDA (Mathspresso)", "RLWRLD", "Indent", "Nota", "Mediwhale", "Shopscanner", "Deepbrain AI", "Autonomous a2z", "Fount", "Asteromorph", "MarqVision", "Altos", "Akros", "AiderX", "BHSN", "Bespin Global", "Elice", "Realdraw", "VoyagerX", "Softbank", "Heuron", "BeringLab", "Law&Company", "AIPLE", "Charan / Mine.AI", "Kai Health", "TainAI", "Riiid", "MyMusicTaste", "BlumnAI", "DeepCardio", "Hyperconnect", "Korea Investment Partners", "Omnious", "Adriel", "Swit.io", "Humanscape", "AlgorithmLabs", "Clarify", "LumanLab", "Genesis Lab", "Levit / Always", "Vuno", "NexusAI"]},
+            {"label": "Gaming companies", "items": ["Krafton (PUBG, Stormgate, Path of Exile)", "Nexon (FC Online/Mobile, Mabinogi, Dave the Diver, Maplestory)", "Nexon Games (Blue Archive)", "Neople (Dungeon & Fighter)", "Netmarble (Modoo Marble)", "NCSoft (Lineage series)", "Smilegate (Crossfire, Lost Ark)", "Devsisters (Cookie Run series)", "Shiftup (Stellar Blade, Nikke)", "Pearl Abyss (Black Desert, Crimson Desert)", "Habby (Survivor.io)"]}
+          ]
+        }
+      ]
+    }
+  ]
+}

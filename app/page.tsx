@@ -15,6 +15,7 @@ import {
   TYPE_LABELS,
 } from "@/lib/types";
 import RankingsPanel from "./RankingsPanel";
+import MatrixPanel from "./MatrixPanel";
 import { fuzzyName } from "@/lib/name-normalize";
 
 const DOMAINS = Object.keys(DOMAIN_LABELS) as Domain[];
@@ -34,7 +35,9 @@ export default function Home() {
   const [showAdd, setShowAdd] = useState(false);
 
   // Top-level tab switching between the tracker and the rankings view
-  const [mainTab, setMainTab] = useState<"tracker" | "rankings">("tracker");
+  const [mainTab, setMainTab] = useState<"tracker" | "rankings" | "matrix">(
+    "tracker"
+  );
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
@@ -351,9 +354,17 @@ export default function Home() {
         >
           Rankings
         </button>
+        <button
+          className={`main-tab ${mainTab === "matrix" ? "active" : ""}`}
+          onClick={() => setMainTab("matrix")}
+        >
+          Matrix
+        </button>
       </div>
 
-      {mainTab === "rankings" ? (
+      {mainTab === "matrix" ? (
+        <MatrixPanel entries={entries} />
+      ) : mainTab === "rankings" ? (
         <RankingsPanel entries={entries} onPromote={promoteByName} />
       ) : (
       <>
