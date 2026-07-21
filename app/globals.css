@@ -1627,31 +1627,58 @@ select.filter-chip {
 .matrix-function {
   position: relative;
   isolation: isolate;
-  box-shadow: 0 0 0 1px var(--border), 0 0 40px -6px var(--glow-shadow, transparent);
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 0 32px 4px var(--glow-shadow, transparent),
+    0 0 64px 8px var(--glow-shadow-far, transparent);
 }
 .matrix-function::after {
   content: "";
   position: absolute;
-  inset: -32px;
-  border-radius: 22px;
+  inset: -40px;
+  border-radius: 28px;
   background: radial-gradient(
-    55% 50% at 50% 50%,
+    60% 55% at 50% 50%,
     var(--glow-halo, transparent),
-    transparent 72%
+    transparent 70%
   );
   pointer-events: none;
   z-index: -1;
-  opacity: 0.65;
-  filter: blur(6px);
+  opacity: 1;
+  filter: blur(8px);
 }
 
-.matrix-function[data-function="finance"] { --glow-halo: var(--d-fintech); --glow-shadow: rgba(91,63,214,0.25); }
-.matrix-function[data-function="legal"] { --glow-halo: var(--d-insurtech); --glow-shadow: rgba(181,74,31,0.22); }
-.matrix-function[data-function="engineering"] { --glow-halo: var(--d-infra); --glow-shadow: rgba(10,110,156,0.22); }
-.matrix-function[data-function="design"] { --glow-halo: var(--d-health); --glow-shadow: rgba(200,52,92,0.20); }
-.matrix-function[data-function="growth"] { --glow-halo: var(--d-bio); --glow-shadow: rgba(13,107,70,0.22); }
-.matrix-function[data-function="ops"] { --glow-halo: var(--d-defense); --glow-shadow: rgba(107,85,0,0.20); }
+.matrix-function[data-function="finance"] {
+  --glow-halo: rgba(91,63,214,0.35);
+  --glow-shadow: rgba(91,63,214,0.55);
+  --glow-shadow-far: rgba(91,63,214,0.22);
+}
+.matrix-function[data-function="legal"] {
+  --glow-halo: rgba(181,74,31,0.32);
+  --glow-shadow: rgba(181,74,31,0.5);
+  --glow-shadow-far: rgba(181,74,31,0.20);
+}
+.matrix-function[data-function="engineering"] {
+  --glow-halo: rgba(10,110,156,0.32);
+  --glow-shadow: rgba(10,110,156,0.5);
+  --glow-shadow-far: rgba(10,110,156,0.20);
+}
+.matrix-function[data-function="design"] {
+  --glow-halo: rgba(200,52,92,0.30);
+  --glow-shadow: rgba(200,52,92,0.48);
+  --glow-shadow-far: rgba(200,52,92,0.20);
+}
+.matrix-function[data-function="growth"] {
+  --glow-halo: rgba(4,215,127,0.28);
+  --glow-shadow: rgba(4,180,110,0.5);
+  --glow-shadow-far: rgba(4,180,110,0.20);
+}
+.matrix-function[data-function="ops"] {
+  --glow-halo: rgba(214,175,20,0.32);
+  --glow-shadow: rgba(214,165,10,0.5);
+  --glow-shadow-far: rgba(214,165,10,0.20);
+}
 
 @media (prefers-color-scheme: dark) {
-  .matrix-function::after { opacity: 0.32; }
+  .matrix-function::after { opacity: 0.55; }
 }
