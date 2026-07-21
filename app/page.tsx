@@ -16,6 +16,7 @@ import {
 } from "@/lib/types";
 import RankingsPanel from "./RankingsPanel";
 import MatrixPanel from "./MatrixPanel";
+import CommandPalette from "./CommandPalette";
 import { fuzzyName } from "@/lib/name-normalize";
 
 const DOMAINS = Object.keys(DOMAIN_LABELS) as Domain[];
@@ -43,6 +44,14 @@ export default function Home() {
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [typeFilter, setTypeFilter] = useState<EntryType | "all">("all");
   const [domainFilter, setDomainFilter] = useState<Domain | "all">("all");
+  const [search, setSearch] = useState("");
+  const [density, setDensity] = useState<"comfortable" | "compact">(
+    "comfortable"
+  );
+  // Bulk-selection state — set of entry ids currently checked.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  // Command palette open state (⌘K)
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   // Archive collapse state — collapsed by default to keep main view clean
   const [archiveOpen, setArchiveOpen] = useState(false);
@@ -142,15 +151,20 @@ export default function Home() {
   );
 
   const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
     return entries.filter((e) => {
       if (statusFilter !== "blacklisted" && e.status === "blacklisted") return false;
       if (statusFilter === "all" && e.status === "targeting") return false;
       if (statusFilter !== "all" && e.status !== statusFilter) return false;
       if (typeFilter !== "all" && e.type !== typeFilter) return false;
       if (domainFilter !== "all" && e.domain !== domainFilter) return false;
+      if (q) {
+        const hay = `${e.name} ${e.notes ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
       return true;
     });
-  }, [entries, statusFilter, typeFilter, domainFilter]);
+  }, [entries, statusFilter, typeFilter, domainFilter, search]);
 
   const counts = useMemo(() => {
     return {
@@ -205,6 +219,97 @@ export default function Home() {
     await fetch(`/api/pools/${id}`, { method: "DELETE" });
     await loadEntries();
   }
+
+  // ---- Bulk actions ----
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function selectAllVisible(ids: string[]) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const allSelected = ids.every((id) => next.has(id));
+      if (allSelected) ids.forEach((id) => next.delete(id));
+      else ids.forEach((id) => next.add(id));
+      return next;
+    });
+  }
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
+  async function bulkUpdate(
+    action: "targeting" | "tried" | "new" | "blacklisted" | "delete",
+    label: string
+  ) {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    if (!confirm(`${label} ${ids.length} entr${ids.length === 1 ? "y" : "ies"}?`))
+      return;
+    await Promise.all(
+      ids.map((id) =>
+        action === "delete"
+          ? fetch(`/api/pools/${id}`, { method: "DELETE" })
+          : fetch(`/api/pools/${id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: action }),
+            })
+      )
+    );
+    clearSelection();
+    await loadEntries();
+  }
+
+  // ---- URL deep-link state ----
+  // On mount: hydrate filters/search from ?query params. On change: push to
+  // URL without reload so filter/search state is shareable.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const t = url.searchParams.get("tab");
+    if (t === "rankings" || t === "matrix" || t === "tracker") setMainTab(t);
+    const s = url.searchParams.get("status");
+    if (s) setStatusFilter(s as Status | "all");
+    const tp = url.searchParams.get("type");
+    if (tp) setTypeFilter(tp as EntryType | "all");
+    const dm = url.searchParams.get("domain");
+    if (dm) setDomainFilter(dm as Domain | "all");
+    const q = url.searchParams.get("q");
+    if (q) setSearch(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const set = (k: string, v: string, def: string) => {
+      if (v && v !== def) url.searchParams.set(k, v);
+      else url.searchParams.delete(k);
+    };
+    set("tab", mainTab, "tracker");
+    set("status", statusFilter, "all");
+    set("type", typeFilter, "all");
+    set("domain", domainFilter, "all");
+    set("q", search, "");
+    window.history.replaceState({}, "", url.toString());
+  }, [mainTab, statusFilter, typeFilter, domainFilter, search]);
+
+  // ---- Command palette ⌘K ----
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      } else if (e.key === "Escape") {
+        setPaletteOpen(false);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   /**
    * Promote a company by name (used by the Rankings panel).
@@ -641,8 +746,26 @@ export default function Home() {
 
       {archiveOpen && (
         <div className="archive-content">
-          {/* FILTERS */}
-          <div className="filter-bar">
+          {/* FILTERS — sticky so they stay in view while scrolling long lists */}
+          <div className="filter-bar sticky">
+            <div className="filter-group" style={{ flex: 1, minWidth: 220 }}>
+              <input
+                className="tracker-search"
+                placeholder="Search name or notes…"
+                value={search}
+                onChange={(ev) => setSearch(ev.target.value)}
+                aria-label="Search entries"
+              />
+              {search && (
+                <button
+                  className="filter-chip"
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                >
+                  ×
+                </button>
+              )}
+            </div>
             <div className="filter-group">
               <span className="filter-label">Status</span>
               {(["all", "new", "tried", "blacklisted"] as const).map((s) => (
@@ -682,7 +805,34 @@ export default function Home() {
                 ))}
               </select>
             </div>
+            <div className="filter-group">
+              <span className="filter-label">Density</span>
+              {(["comfortable", "compact"] as const).map((d) => (
+                <button
+                  key={d}
+                  className={`filter-chip ${density === d ? "active" : ""}`}
+                  onClick={() => setDensity(d)}
+                >
+                  {d === "comfortable" ? "Comfy" : "Compact"}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* BULK ACTION BAR — appears when at least 1 row is checked */}
+          {selectedIds.size > 0 && (
+            <div className="bulk-bar">
+              <span className="bulk-count">
+                {selectedIds.size} selected
+              </span>
+              <button className="filter-chip" onClick={() => bulkUpdate("targeting", "Target")}>Target</button>
+              <button className="filter-chip" onClick={() => bulkUpdate("tried", "Mark tried")}>Mark tried</button>
+              <button className="filter-chip" onClick={() => bulkUpdate("new", "Reset to new")}>Reset</button>
+              <button className="filter-chip" onClick={() => bulkUpdate("blacklisted", "Blacklist")}>Blacklist</button>
+              <button className="filter-chip danger" onClick={() => bulkUpdate("delete", "Delete")}>Delete</button>
+              <button className="filter-chip subtle" onClick={clearSelection}>Clear</button>
+            </div>
+          )}
 
           {/* ENTRIES */}
           <div className="archive-section-head">
@@ -692,16 +842,52 @@ export default function Home() {
                 : `${STATUS_LABELS[statusFilter as Status]}`}
             </div>
             <div className="archive-section-count">
-              <span>{filtered.length}</span> shown
+              <button
+                className="filter-chip subtle"
+                onClick={() =>
+                  selectAllVisible(filtered.map((e) => e.id))
+                }
+                style={{ marginRight: 8 }}
+              >
+                {filtered.every((e) => selectedIds.has(e.id)) && filtered.length > 0
+                  ? "Deselect all"
+                  : "Select all"}
+              </button>
+              <span>{filtered.length}</span> of {counts.total} shown
             </div>
           </div>
 
           {loading ? (
             <div className="loading">Loading…</div>
+          ) : filtered.length === 0 ? (
+            <div className="entries-empty">
+              {search ? (
+                <>
+                  No entries match <b>“{search}”</b>.
+                  <button className="filter-chip subtle" onClick={() => setSearch("")} style={{ marginLeft: 12 }}>
+                    Clear search
+                  </button>
+                </>
+              ) : (
+                <>Nothing here yet — adjust filters or add a new entry above.</>
+              )}
+            </div>
           ) : (
-        <div className="entries">
+        <div className={`entries density-${density}`}>
           {filtered.map((e) => (
-            <div key={e.id} className={`entry status-${e.status}`}>
+            <div
+              key={e.id}
+              className={`entry status-${e.status} domain-edge-${e.domain}`}
+              data-selected={selectedIds.has(e.id) ? "true" : undefined}
+            >
+              <label className="entry-check">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(e.id)}
+                  onChange={() => toggleSelected(e.id)}
+                  aria-label={`Select ${e.name}`}
+                />
+              </label>
               <div className="entry-name">{e.name}</div>
               <div className="entry-meta">
                 <span className={`status-pill ${e.status}`}>
@@ -1104,6 +1290,14 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        entries={entries}
+        onNavigate={setMainTab}
+        onChangeStatus={changeStatus}
+      />
     </main>
   );
 }

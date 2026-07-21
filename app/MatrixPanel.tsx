@@ -46,12 +46,23 @@ const ENG_DOMAINS: Domain[] = [
 export default function MatrixPanel({ entries }: { entries: Entry[] }) {
   const data = matrixData as { title: string; functions: FunctionBlock[] };
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
-    // Default: all sections open
+    // Try localStorage first — remember collapse state across sessions.
+    if (typeof window !== "undefined") {
+      try {
+        const saved = window.localStorage.getItem("matrix.expanded");
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
     const m: Record<string, boolean> = {};
     for (const f of data.functions) m[f.function] = true;
-    m["__eng_historical"] = true;
     return m;
   });
+  // Persist collapse state on change.
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.setItem("matrix.expanded", JSON.stringify(expanded));
+    } catch {}
+  }
 
   // Group the tracker DB by domain for the "Engineering — Historical" block
   const engHistorical = useMemo(() => {
@@ -215,12 +226,31 @@ function TargetGroupBlock({
   collapseAt?: number;
 }) {
   const [showAll, setShowAll] = useState(false);
+  const [copied, setCopied] = useState(false);
   const overflow = items.length > collapseAt;
   const visible = showAll || !overflow ? items : items.slice(0, collapseAt);
+
+  async function copyList() {
+    try {
+      await navigator.clipboard.writeText(items.join("\n"));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1400);
+    } catch {}
+  }
+
   return (
     <div className="matrix-group">
-      <div className="matrix-group-label">
-        {label} <span className="matrix-group-count">({items.length})</span>
+      <div className="matrix-group-head">
+        <div className="matrix-group-label">
+          {label} <span className="matrix-group-count">({items.length})</span>
+        </div>
+        <button
+          className={`matrix-copy ${copied ? "copied" : ""}`}
+          onClick={copyList}
+          title="Copy list to clipboard (newline-separated)"
+        >
+          {copied ? "✓ Copied" : "⧉ Copy"}
+        </button>
       </div>
       <div className="matrix-group-items">
         {visible.map((it, i) => (

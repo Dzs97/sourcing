@@ -1682,3 +1682,243 @@ select.filter-chip {
 @media (prefers-color-scheme: dark) {
   .matrix-function::after { opacity: 0.55; }
 }
+
+/* ============================================================
+   Tracker UX v2 — search, sticky filter, bulk actions,
+   density modes, colored left edge per domain, empty state
+   ============================================================ */
+.filter-bar.sticky {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tracker-search {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--text);
+}
+.tracker-search:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(4, 215, 127, 0.15);
+}
+.bulk-bar {
+  position: sticky;
+  top: 60px;
+  z-index: 19;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+  background: var(--ink);
+  color: var(--ink-text);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+.bulk-count {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink-text);
+  margin-right: 8px;
+}
+.bulk-bar .filter-chip {
+  background: var(--ink-glass);
+  color: var(--ink-text);
+  border: 1px solid var(--ink-divider);
+}
+.bulk-bar .filter-chip:hover {
+  background: rgba(255,255,255,0.12);
+}
+.bulk-bar .filter-chip.danger {
+  color: #ff8080;
+  border-color: rgba(255,80,80,0.35);
+}
+.bulk-bar .filter-chip.subtle {
+  opacity: 0.7;
+}
+
+.entries-empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--text-fade);
+  font-size: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  margin: 16px;
+}
+
+.entries.density-compact .entry {
+  padding: 8px 12px 8px 16px;
+  gap: 4px;
+}
+.entries.density-compact .entry-name {
+  font-size: 13px;
+}
+.entries.density-compact .entry-meta { gap: 6px; }
+.entries.density-compact .entry-actions { margin-top: 4px; }
+.entries.density-compact .entry-notes { font-size: 11px; margin-top: 2px; }
+
+.entry-check {
+  display: inline-flex;
+  align-items: center;
+  padding-right: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.entry-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.entry[data-selected="true"] {
+  background: rgba(4,215,127,0.08);
+  outline: 1px solid rgba(4,215,127,0.35);
+}
+
+/* Domain-colored left edge — a 3px bar keyed to the same palette
+   tokens used across the app so the tracker rows visually sort by
+   domain at a glance. */
+.entry { border-left: 3px solid transparent; }
+.entry.domain-edge-frontier-ai { border-left-color: var(--d-frontier-text); }
+.entry.domain-edge-healthcare-ai { border-left-color: var(--d-health-text); }
+.entry.domain-edge-insurtech { border-left-color: var(--d-insurtech-text); }
+.entry.domain-edge-defense { border-left-color: var(--d-defense-text); }
+.entry.domain-edge-infra-devtools { border-left-color: var(--d-infra-text); }
+.entry.domain-edge-bio-ai { border-left-color: var(--d-bio-text); }
+.entry.domain-edge-fintech { border-left-color: var(--d-fintech-text); }
+.entry.domain-edge-vertical-saas { border-left-color: var(--d-portco-text); }
+.entry.domain-edge-cs-school,
+.entry.domain-edge-elite-hs,
+.entry.domain-edge-fellowship,
+.entry.domain-edge-olympiad { border-left-color: var(--d-school-text); }
+.entry.domain-edge-open-source { border-left-color: var(--d-bio-text); }
+.entry.domain-edge-neos-portco { border-left-color: var(--d-portco-text); }
+.entry.domain-edge-research-lab { border-left-color: var(--d-frontier-text); }
+.entry.domain-edge-korea-sourcing { border-left-color: var(--d-fintech-text); }
+.entry.domain-edge-other { border-left-color: var(--border-strong); }
+
+/* Notes preview — surface inline notes without expansion */
+.entry-notes {
+  color: var(--text-soft);
+  font-size: 12px;
+  line-height: 1.4;
+  margin-top: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============================================================
+   Command Palette (⌘K)
+   ============================================================ */
+.palette-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+.palette {
+  width: min(600px, 92vw);
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: 0 25px 60px -15px rgba(0,0,0,0.4), 0 0 0 1px var(--border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 60vh;
+}
+.palette-input {
+  padding: 16px 20px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  font-size: 16px;
+  background: transparent;
+  color: var(--text);
+  outline: none;
+  font-family: inherit;
+}
+.palette-results {
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.palette-item {
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.palette-item:hover,
+.palette-item[aria-selected="true"] {
+  background: var(--surface-2);
+}
+.palette-item-kind {
+  font-size: 11px;
+  color: var(--text-fade);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.palette-empty {
+  padding: 24px 20px;
+  color: var(--text-fade);
+  font-size: 13px;
+  text-align: center;
+}
+.palette-hint {
+  padding: 8px 20px;
+  border-top: 1px solid var(--border);
+  color: var(--text-fade);
+  font-size: 11px;
+  display: flex;
+  gap: 12px;
+}
+
+/* ============================================================
+   Matrix — copy-to-clipboard on target groups
+   ============================================================ */
+.matrix-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.matrix-copy {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--text-soft);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 100ms;
+}
+.matrix-copy:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.matrix-copy.copied {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
