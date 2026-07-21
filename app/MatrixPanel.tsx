@@ -102,43 +102,41 @@ export default function MatrixPanel({ entries }: { entries: Entry[] }) {
             <div className="matrix-function-body">
               {f.note && <div className="matrix-note">{f.note}</div>}
 
+              {/* Roles first — this is what we're actively searching for. */}
+              {f.roles.map((r) => {
+                // For Engineering, merge historical tracker data into the
+                // Product/Founding Engineer role's target groups so all
+                // sourcing pools live in one place instead of a sibling card.
+                const extraTargets: TargetGroup[] =
+                  f.function === "Engineering" &&
+                  r.role === "Product / Founding Engineer"
+                    ? [...engHistorical.entries()]
+                        .sort((a, b) => b[1].length - a[1].length)
+                        .map(([domain, arr]) => ({
+                          label: `Historical tracker — ${DOMAIN_LABELS[domain]}`,
+                          items: arr.map((e) => e.name),
+                        }))
+                    : [];
+                return (
+                  <RoleCard
+                    key={r.role}
+                    role={
+                      extraTargets.length
+                        ? { ...r, targets: [...(r.targets ?? []), ...extraTargets] }
+                        : r
+                    }
+                  />
+                );
+              })}
+
+              {/* Shared targets/schools below the roles — they apply across
+                  the ladder above but belong under "how we source", not
+                  "who we're looking for". */}
               {f.sharedTargets && (
                 <SharedBlock title="Shared targets" groups={f.sharedTargets} />
               )}
               {f.sharedSchools && (
                 <SharedBlock title="Shared schools" groups={f.sharedSchools} />
-              )}
-
-              {f.roles.map((r) => (
-                <RoleCard key={r.role} role={r} />
-              ))}
-
-              {/* Engineering — historical tracker data */}
-              {f.function === "Engineering" && (
-                <div className="matrix-role">
-                  <div className="matrix-role-head">
-                    <div className="matrix-role-name">
-                      Engineering — Historical Tracker Data
-                    </div>
-                    <div className="matrix-role-yoe">
-                      {[...engHistorical.values()].reduce(
-                        (n, arr) => n + arr.length,
-                        0
-                      )}{" "}
-                      entries across {engHistorical.size} domains
-                    </div>
-                  </div>
-                  {[...engHistorical.entries()]
-                    .sort((a, b) => b[1].length - a[1].length)
-                    .map(([domain, arr]) => (
-                      <TargetGroupBlock
-                        key={domain}
-                        label={`${DOMAIN_LABELS[domain]} (${arr.length})`}
-                        items={arr.map((e) => e.name)}
-                        collapseAt={40}
-                      />
-                    ))}
-                </div>
               )}
             </div>
           )}
