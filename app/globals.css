@@ -2024,3 +2024,134 @@ select.filter-chip {
   background: #d6a50a;
   color: #d6a50a;
 }
+
+/* ============================================================
+   Matrix — inline editing + sync
+   ============================================================ */
+.matrix-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.matrix-sync {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.matrix-sync-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--text-soft);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 100ms;
+}
+.matrix-sync-btn:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.matrix-sync-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.matrix-sync-btn.loading {
+  color: var(--accent);
+}
+.matrix-sync-msg {
+  font-size: 11px;
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+}
+
+/* User-added chip differentiator + × affordance */
+.matrix-chip.user-added {
+  background: rgba(4,215,127,0.10);
+  border-color: rgba(4,215,127,0.35);
+  color: var(--accent-text);
+  gap: 4px;
+  display: inline-flex;
+  align-items: center;
+}
+.matrix-chip-x {
+  background: none;
+  border: none;
+  color: rgba(0,0,0,0.35);
+  cursor: pointer;
+  padding: 0 2px;
+  margin-left: 2px;
+  font-size: 14px;
+  line-height: 1;
+  font-family: inherit;
+}
+.matrix-chip-x:hover {
+  color: var(--status-blacklisted);
+}
+
+.matrix-additem-toggle,
+.matrix-newgroup-toggle {
+  margin-top: 8px;
+  background: transparent;
+  border: 1px dashed var(--border-strong);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--text-fade);
+  cursor: pointer;
+  font-family: inherit;
+}
+.matrix-additem-toggle:hover,
+.matrix-newgroup-toggle:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.matrix-newgroup-toggle {
+  display: block;
+  margin-top: 14px;
+  width: 100%;
+  text-align: center;
+}
+
+.matrix-additem,
+.matrix-newgroup {
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+.matrix-additem-input,
+.matrix-newgroup-items,
+.matrix-newgroup-name {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  background: var(--surface);
+  color: var(--text);
+  resize: vertical;
+}
+.matrix-newgroup-name { margin-bottom: 8px; }
+.matrix-additem-actions,
+.matrix-newgroup-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .matrix-chip.user-added {
+    background: rgba(4,215,127,0.18);
+    color: #b3f5db;
+  }
+  .matrix-chip-x {
+    color: rgba(255,255,255,0.4);
+  }
+}
