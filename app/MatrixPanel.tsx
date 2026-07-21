@@ -84,7 +84,11 @@ export default function MatrixPanel({ entries }: { entries: Entry[] }) {
       </div>
 
       {data.functions.map((f) => (
-        <div key={f.function} className="matrix-function">
+        <div
+          key={f.function}
+          className="matrix-function"
+          data-function={functionSlug(f.function)}
+        >
           <button
             className="matrix-function-head"
             onClick={() => toggle(f.function)}
@@ -144,6 +148,18 @@ export default function MatrixPanel({ entries }: { entries: Entry[] }) {
       ))}
     </section>
   );
+}
+
+// Stable slug per top-level function — drives the section glow color.
+function functionSlug(name: string): string {
+  const s = name.toLowerCase();
+  if (s.startsWith("finance")) return "finance";
+  if (s.startsWith("legal")) return "legal";
+  if (s.startsWith("engineering")) return "engineering";
+  if (s.startsWith("design")) return "design";
+  if (s.startsWith("growth")) return "growth";
+  if (s.startsWith("operations")) return "ops";
+  return "default";
 }
 
 function SharedBlock({
