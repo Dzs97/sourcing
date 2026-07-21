@@ -184,7 +184,7 @@
           "yoe": "1–3 yrs",
           "profile": ["Hungry, willing to die", "Relaxed school filters — look for folks already in the startup ecosystem", "Superstar profiles: Project Manager / Product Owner / Strategy / Data Analyst", "EXCLUDE: localization managers (translation / cultural adaptation focus)"],
           "targets": [
-            {"label": "Schools", "items": ["Hongik", "Hanyang", "Kyunghee", "Korean Minjok Leadership Academy (KMLA)", "Konkuk", "Ewha", "Chungang", "Sungkyunkwan", "Yonsei Underwood", "Korea University", "SNU"]},
+            {"label": "Schools", "items": ["Korea University — all majors, recent grads 2019-2025", "SNU — all majors, recent grads 2019-2025", "Yonsei — all majors, recent grads 2019-2025", "KAIST — all majors, recent grads 2019-2025", "Hongik", "Hanyang", "Kyunghee", "Korean Minjok Leadership Academy (KMLA)", "Konkuk", "Ewha", "Chungang", "Sungkyunkwan", "Yonsei Underwood"]},
             {"label": "University clubs — SNU", "items": ["SNU Interdisciplinary Major in AI", "AIIS (AI Institute of SNU)", "SNU IPAI", "Graduate School of Data Science", "WaffleStudio", "GDSC SNU"]},
             {"label": "University clubs — Yonsei", "items": ["YAI (Yonsei Artificial Intelligence)", "YBIGTA (Big Data)", "GDSC Yonsei"]},
             {"label": "University clubs — Korea University", "items": ["AIKU", "KUBIG", "KUCC", "GDSC Korea University", "DevKor"]},
@@ -195,8 +195,7 @@
             {"label": "Search titles (EN + KR, boolean)", "items": ["Operations Associate", "Operations Specialist", "Operations Coordinator", "Business Operations", "BizOps", "Business Development", "Business Developer", "BD Associate", "Partnerships", "Growth Associate", "Strategy Associate", "Strategy Analyst", "Corporate Strategy", "Strategic Planning", "Business Strategy", "운영", "경영지원", "오퍼레이션", "사업운영", "사업개발", "사업 개발", "제휴", "전략", "사업전략", "경영전략", "전략기획", "NOT: Engineer / Software / 엔지니어 / 개발자"]},
             {"label": "Product & leadership titles", "items": ["PM", "Product Manager", "Product Owner", "CTO", "CEO", "Co-founder", "Founding member"]},
             {"label": "SKY consulting clubs (SNU / Yonsei / Korea U)", "items": ["SNU MCS (Management Consulting Society)", "SNU MCC (Management Consulting Club)", "SNU SMC (Strategy & Management Consulting)", "SNU KUSA (Korea University Strategy Association) — cross", "Yonsei YCC (Yonsei Consulting Club)", "Yonsei YSC (Yonsei Strategy Consulting)", "Yonsei GLC (Global Leaders Club)", "Korea U KUCC (Korea University Consulting Club)", "Korea U KUSA (Korea University Strategy Association)", "Korea U KCC (Korea Consulting Club)"]},
-            {"label": "Korea University grads (broad filter)", "items": ["Korea University — all majors, recent grads 2019-2025"]},
-            {"label": "SKY → Big 3 consulting alumni", "items": ["SNU → Bain", "SNU → BCG", "SNU → McKinsey", "Yonsei → Bain", "Yonsei → BCG", "Yonsei → McKinsey", "Korea U → Bain", "Korea U → BCG", "Korea U → McKinsey"]}
+{"label": "SKY → Big 3 consulting alumni", "items": ["SNU → Bain", "SNU → BCG", "SNU → McKinsey", "Yonsei → Bain", "Yonsei → BCG", "Yonsei → McKinsey", "Korea U → Bain", "Korea U → BCG", "Korea U → McKinsey"]}
           ]
         }
       ]
