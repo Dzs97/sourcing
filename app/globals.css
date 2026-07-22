@@ -2155,3 +2155,26 @@ select.filter-chip {
     color: rgba(255,255,255,0.4);
   }
 }
+
+/* Matrix — category sections inside a role card. Each section is a
+   thin divider + label so related target groups (schools, investors,
+   etc.) stack together and the page reads top-down instead of feeling
+   like a random scroll. */
+.matrix-section {
+  margin: 12px 0 8px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+.matrix-section:first-of-type {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: none;
+}
+.matrix-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-fade);
+  margin-bottom: 8px;
+}

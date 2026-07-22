@@ -12,6 +12,79 @@ interface MatrixAdditions {
 const addKey = (fn: string, role: string, group: string) =>
   `${fn}::${role}::${group}`;
 
+/**
+ * Categorize a target-group label into a section so the matrix reads
+ * top-down as: talent programs → investor networks → companies →
+ * schools → awards/research → regional → historical → other.
+ *
+ * The Historical tracker groups auto-injected from the DB and any
+ * user-added groups slot into the appropriate section by label match,
+ * so the sourcer sees "all school lists together" instead of scattered
+ * across the role card.
+ */
+const SECTIONS: {
+  key: string;
+  label: string;
+  match: (l: string) => boolean;
+}[] = [
+  {
+    key: "search-keywords",
+    label: "Search keywords",
+    match: (l) => /(search\s+titles?|search\s+keywords?|boolean|title[s]?\s*&\s*keywords?|role\s+titles?|product\s+&\s+leadership)/i.test(l),
+  },
+  {
+    key: "talent-programs",
+    label: "Talent programs & pipelines",
+    match: (l) =>
+      /(fellowship|residency|scholar|talent pipeline|pipelines?|consulting club|clubs?|fellow[s]?\b)/i.test(l),
+  },
+  {
+    key: "investors",
+    label: "Investor networks",
+    match: (l) => /(vc|venture|portfolio|fund|investor|theme|sequoia|a16z|greylock|thrive|founders fund|iconiq|nea|coatue|bessemer|kleiner|neos)/i.test(l),
+  },
+  {
+    key: "companies",
+    label: "Companies & IPOs",
+    match: (l) =>
+      /(company target|companies|ipo|scale filter|gaming|startups?|late[- ]stage|early[- ]stage|management trainee|banks?|consultants?|private equity|hedge fund|law firm|target compan)/i.test(l),
+  },
+  {
+    key: "schools",
+    label: "Schools & academic",
+    match: (l) =>
+      /(school|univers|college|liberal arts|high\s+school|hs\b|kmla|design program|art school|clubs?\s+—\s+SNU|clubs?\s+—\s+Yonsei|clubs?\s+—\s+KAIST|clubs?\s+—\s+Korea|cross-university|historical tracker.*(school|high|university|research))/i.test(l),
+  },
+  {
+    key: "awards",
+    label: "Awards & research signals",
+    match: (l) =>
+      /(olympiad|award|research lab|conference|neurips|icml|iclr|ml \/ nlp|competition|open.source|historical tracker.*(olympiad|open|research)|scholarship)/i.test(l),
+  },
+  {
+    key: "regional",
+    label: "Regional & geo",
+    match: (l) =>
+      /(israel|hk\b|hong ?kong|geo|misc|middle east|arabic|malay|thai|korea|japan|taiwan|china|india|singapore|australia|europe|latin|region|regional|country|arabic speakers|defense tech.*(uae|israel))/i.test(l),
+  },
+  {
+    key: "profile",
+    label: "Profile & sourcing signals",
+    match: (l) => /(profile|signals?|sourcing|archetype|excludes?)/i.test(l),
+  },
+  {
+    key: "historical",
+    label: "Historical tracker snapshots",
+    match: (l) => /^historical tracker/i.test(l),
+  },
+];
+const OTHER = { key: "other", label: "Other" };
+
+function sectionFor(label: string) {
+  for (const s of SECTIONS) if (s.match(label)) return s;
+  return OTHER;
+}
+
 interface TargetGroup {
   label: string;
   items: string[];
@@ -357,30 +430,55 @@ function RoleCard({
           ))}
         </ul>
       )}
-      {role.targets?.map((g) => {
-        // Merge base items with user additions for this group.
-        const k = addKey(fn, role.role, g.label);
-        const userItems = adds.additions[k] ?? [];
-        const combined = [...g.items];
-        const seen = new Set(g.items.map((x) => x.toLowerCase()));
-        const userOnly = new Set<string>();
-        for (const it of userItems) {
-          if (!seen.has(it.toLowerCase())) {
-            combined.push(it);
-            userOnly.add(it.toLowerCase());
-          }
+      {/* Groups are rendered inside category sections so related lists
+          (schools, investors, etc.) sit together instead of scattered. */}
+      {(() => {
+        const bySection = new Map<string, TargetGroup[]>();
+        for (const g of role.targets ?? []) {
+          const s = sectionFor(g.label);
+          const arr = bySection.get(s.key) ?? [];
+          arr.push(g);
+          bySection.set(s.key, arr);
         }
-        return (
-          <TargetGroupBlock
-            key={g.label}
-            label={g.label}
-            items={combined}
-            userOnly={userOnly}
-            onAddItems={(items) => onAdd(fn, role.role, g.label, items)}
-            onDeleteItem={(item) => onDelete(fn, role.role, g.label, item)}
-          />
+        const ordered = [...SECTIONS, OTHER].filter((s) =>
+          bySection.has(s.key)
         );
-      })}
+        return ordered.map((section) => {
+          const groups = bySection.get(section.key) ?? [];
+          return (
+            <div key={section.key} className="matrix-section">
+              <div className="matrix-section-title">{section.label}</div>
+              {groups.map((g) => {
+                const k = addKey(fn, role.role, g.label);
+                const userItems = adds.additions[k] ?? [];
+                const combined = [...g.items];
+                const seen = new Set(g.items.map((x) => x.toLowerCase()));
+                const userOnly = new Set<string>();
+                for (const it of userItems) {
+                  if (!seen.has(it.toLowerCase())) {
+                    combined.push(it);
+                    userOnly.add(it.toLowerCase());
+                  }
+                }
+                return (
+                  <TargetGroupBlock
+                    key={g.label}
+                    label={g.label}
+                    items={combined}
+                    userOnly={userOnly}
+                    onAddItems={(items) =>
+                      onAdd(fn, role.role, g.label, items)
+                    }
+                    onDeleteItem={(item) =>
+                      onDelete(fn, role.role, g.label, item)
+                    }
+                  />
+                );
+              })}
+            </div>
+          );
+        });
+      })()}
       {/* Add a brand-new target group under this role */}
       {showNewGroup ? (
         <div className="matrix-newgroup">
