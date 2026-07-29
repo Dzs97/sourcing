@@ -121,15 +121,35 @@ export default function Home() {
     [targeting]
   );
 
-  const groupByDomain = (items: Entry[]) => {
+  // Extract "Owner: <name>" from an entry's notes so we can group the
+  // Featured targeting block by sourcer (Diego / Karla / …) instead of
+  // by domain. Falls back to "Unassigned" for entries with no owner
+  // marker, so the whole tracker still renders even before every row
+  // is tagged.
+  const ownerOf = (e: Entry): string => {
+    const notes = e.notes ?? "";
+    const m = notes.match(/Owner:\s*([A-Za-z][A-Za-z0-9 _-]{0,30})/);
+    return m ? m[1].trim() : "Unassigned";
+  };
+
+  const groupByOwner = (items: Entry[]) => {
     const groups: Record<string, Entry[]> = {};
     for (const e of items) {
-      const key = DOMAIN_LABELS[e.domain];
+      const key = ownerOf(e);
       groups[key] = groups[key] ?? [];
       groups[key].push(e);
     }
-    return Object.entries(groups).sort((a, b) => b[1].length - a[1].length);
+    // Named owners first (largest cohort first), Unassigned last.
+    return Object.entries(groups).sort((a, b) => {
+      if (a[0] === "Unassigned") return 1;
+      if (b[0] === "Unassigned") return -1;
+      return b[1].length - a[1].length;
+    });
   };
+
+  // Kept as an alias so any other reference still works during the
+  // transition. All Featured groupings now go through groupByOwner.
+  const groupByDomain = groupByOwner;
 
   const targetingHighByDomain = useMemo(
     () => groupByDomain(targetingHigh),
