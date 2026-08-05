@@ -68,10 +68,15 @@ function parseCandidateLevelSheet(wb: XLSX.WorkBook): {
   if (!sheetName) return { rankings: [], recency: [] };
 
   const ws = wb.Sheets[sheetName];
+  // raw:false keeps M/D-only date cells like "7/29" as literal strings so the
+  // string-based date parser can assign the current year. Under raw:true,
+  // XLSX auto-types "7/29" to an Excel serial with year 2001, which produced
+  // absurd "9138 days ago" recency values. See parseFlexibleDate below.
   const rows = XLSX.utils.sheet_to_json<unknown[]>(ws, {
     header: 1,
     blankrows: false,
     defval: null,
+    raw: false,
   });
   if (rows.length < 2) return { rankings: [], recency: [] };
 
@@ -216,30 +221,43 @@ function parseCandidateLevelSheet(wb: XLSX.WorkBook): {
  */
 function parseFlexibleDate(v: unknown, nowMs: number): number | null {
   if (v === null || v === undefined || v === "") return null;
+  const currentYear = new Date(nowMs).getUTCFullYear();
   // Excel serial date number → days since 1899-12-30
   if (typeof v === "number" && Number.isFinite(v) && v > 30000 && v < 80000) {
-    return (v - 25569) * 86400 * 1000; // 25569 = days from 1970-01-01 to 1899-12-30 offset
+    return (v - 25569) * 86400 * 1000;
   }
   const s = String(v).trim();
   if (!s) return null;
+
+  const clamp = (m: number, d: number, y: number): number => {
+    // Sanity-clamp implausibly-old years back to current year. Happens
+    // when the source sheet has M/D cells that XLSX or a downstream tool
+    // types as "2001" or similar. We assume any date >4y in the past is
+    // a mis-yeared calibration entry and coerce to the current year.
+    if (y < currentYear - 4) y = currentYear;
+    return Date.UTC(y, m - 1, d);
+  };
+
   const parts = s.split("/");
   if (parts.length === 2) {
-    // "M/D" — assume the year the sheet is current for (today's year)
     const m = parseInt(parts[0], 10);
     const d = parseInt(parts[1], 10);
-    if (!Number.isFinite(m) || !Number.isFinite(d)) return null;
-    const year = new Date(nowMs).getUTCFullYear();
-    return Date.UTC(year, m - 1, d);
+    if (Number.isFinite(m) && Number.isFinite(d)) return clamp(m, d, currentYear);
   }
   if (parts.length === 3) {
     const m = parseInt(parts[0], 10);
     const d = parseInt(parts[1], 10);
     let y = parseInt(parts[2], 10);
-    if (!Number.isFinite(m) || !Number.isFinite(d) || !Number.isFinite(y)) {
-      return null;
+    if (Number.isFinite(m) && Number.isFinite(d) && Number.isFinite(y)) {
+      if (y < 100) y += 2000;
+      return clamp(m, d, y);
     }
-    if (y < 100) y += 2000;
-    return Date.UTC(y, m - 1, d);
+  }
+  // ISO-ish fallback (YYYY-MM-DD, "Jul 29 2026", etc.) via Date.parse
+  const t = Date.parse(s);
+  if (Number.isFinite(t)) {
+    const d = new Date(t);
+    return clamp(d.getUTCMonth() + 1, d.getUTCDate(), d.getUTCFullYear());
   }
   return null;
 }
