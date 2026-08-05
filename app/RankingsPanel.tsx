@@ -72,6 +72,10 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
   // view without adding signal. Kept as a toggle so the historical counts
   // (rendered in the tab labels) still reflect the full tracker.
   const [hideZeroData, setHideZeroData] = useState<boolean>(true);
+  // Sample-size floor. 67% of the DB has only 1 vote — that's noise.
+  // Default to hiding companies below the floor; toggle to include them.
+  const MIN_VOTES = 3;
+  const [applyVoteFloor, setApplyVoteFloor] = useState<boolean>(true);
 
   // Reset to page 1 when the filtered/sorted result set changes
   useEffect(() => {
@@ -180,6 +184,12 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
     if (hideZeroData) {
       base = base.filter((r) => r.total_votes > 0 || r.total_score > 0);
     }
+    // Sample-size floor — a company with 1 Yes shouldn't outrank one
+    // with 5 Yes / 1 No. Skip on the "mine" tab since the user may
+    // legitimately want to see their own low-vote entries.
+    if (applyVoteFloor && tab !== "mine") {
+      base = base.filter((r) => r.total_votes >= MIN_VOTES);
+    }
 
     // Apply search
     const q = search.trim().toLowerCase();
@@ -221,7 +231,7 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
     });
 
     return sorted;
-  }, [bundle, tab, sortKey, search, entries, entriesByName, recencyByCompany, rankingsByCompany, hideZeroData]);
+  }, [bundle, tab, sortKey, search, entries, entriesByName, recencyByCompany, rankingsByCompany, hideZeroData, applyVoteFloor]);
 
   // Stats for the tab labels and hero block
   const stats = useMemo(() => {
@@ -426,6 +436,13 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
             title="Hide companies with no calibration votes yet — counts in tab labels stay accurate"
           >
             {hideZeroData ? "✓ Hide 0-data" : "Show 0-data"}
+          </button>
+          <button
+            className={`filter-chip ${applyVoteFloor ? "active" : ""}`}
+            onClick={() => setApplyVoteFloor((v) => !v)}
+            title={`Require at least ${MIN_VOTES} votes so 1-vote noise doesn't clutter the ranking. Off on the "Mine" tab.`}
+          >
+            {applyVoteFloor ? `✓ ≥${MIN_VOTES} votes` : `<${MIN_VOTES} votes OK`}
           </button>
         </div>
         <div className="filter-group">

@@ -150,7 +150,15 @@ function parseCandidateLevelSheet(wb: XLSX.WorkBook): {
 
   const aggregated = Array.from(buckets.entries()).map(([company, b]) => {
     const total_votes = b.superstar + b.yes + b.maybe + b.no;
-    const total_score = b.superstar * 5 + b.yes * 2 + b.maybe * 0.5;
+    // Weights v2 (2026-07):
+    //   Superstar 10 — rarest marker (~0.6% of companies), highest signal
+    //   Yes        2 — the workhorse positive
+    //   Maybe   0.25 — soft positive, downweighted from 0.5
+    //   No      -0.5 — real negative signal, so big-No pools sink correctly
+    // See conversation on scoring rework — 57% of the DB had score 0
+    // because Nos didn't penalize, and Superstar was only 2.5x a Yes.
+    const total_score =
+      b.superstar * 10 + b.yes * 2 + b.maybe * 0.25 - b.no * 0.5;
     return {
       company,
       total_score,
