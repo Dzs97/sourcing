@@ -68,6 +68,10 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
   // Pagination — pageSize=0 means "show all"
   const [pageSize, setPageSize] = useState<number>(200);
   const [page, setPage] = useState<number>(1);
+  // Hide companies with zero calibration data by default — they clutter the
+  // view without adding signal. Kept as a toggle so the historical counts
+  // (rendered in the tab labels) still reflect the full tracker.
+  const [hideZeroData, setHideZeroData] = useState<boolean>(true);
 
   // Reset to page 1 when the filtered/sorted result set changes
   useEffect(() => {
@@ -171,6 +175,12 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
       );
     }
 
+    // Optionally drop companies with zero calibration signal. Applied
+    // AFTER tab-specific filters so counts in tab labels stay accurate.
+    if (hideZeroData) {
+      base = base.filter((r) => r.total_votes > 0 || r.total_score > 0);
+    }
+
     // Apply search
     const q = search.trim().toLowerCase();
     if (q) {
@@ -211,7 +221,7 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
     });
 
     return sorted;
-  }, [bundle, tab, sortKey, search, entries, entriesByName, recencyByCompany, rankingsByCompany]);
+  }, [bundle, tab, sortKey, search, entries, entriesByName, recencyByCompany, rankingsByCompany, hideZeroData]);
 
   // Stats for the tab labels and hero block
   const stats = useMemo(() => {
@@ -408,6 +418,15 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+        </div>
+        <div className="filter-group">
+          <button
+            className={`filter-chip ${hideZeroData ? "active" : ""}`}
+            onClick={() => setHideZeroData((v) => !v)}
+            title="Hide companies with no calibration votes yet — counts in tab labels stay accurate"
+          >
+            {hideZeroData ? "✓ Hide 0-data" : "Show 0-data"}
+          </button>
         </div>
         <div className="filter-group">
           <span className="filter-label">Sort</span>
