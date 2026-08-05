@@ -517,6 +517,22 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
                     <td className="rk-company">
                       {isGold && <span className="gold-marker" title=">2 superstars">⭐</span>}
                       {r.company}
+                      {r.tags && Object.keys(r.tags).length > 0 && (
+                        <div className="rk-tags">
+                          {Object.entries(r.tags)
+                            .slice(0, 3)
+                            .map(([tag, count]) => (
+                              <span
+                                key={tag}
+                                className="rk-tag"
+                                title={`Tag "${tag}" seen on ${count} candidate${count === 1 ? "" : "s"}`}
+                              >
+                                {tag}
+                                <span className="rk-tag-count">{count}</span>
+                              </span>
+                            ))}
+                        </div>
+                      )}
                     </td>
                     <td className="rk-num">
                       {isUnranked ? "—" : <strong>{r.total_score}</strong>}

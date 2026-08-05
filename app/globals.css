@@ -2178,3 +2178,36 @@ select.filter-chip {
   color: var(--text-fade);
   margin-bottom: 8px;
 }
+
+/* Rankings — calibration tag chips under company name. Uses the tag
+   histogram captured by the candidate-level parser (column B of the
+   source sheet). Shows top-3 tags with per-tag candidate counts. */
+.rk-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.rk-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(4,215,127,0.10);
+  border: 1px solid rgba(4,215,127,0.25);
+  color: var(--accent-text);
+  font-size: 10px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.rk-tag-count {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-fade);
+  padding-left: 3px;
+  border-left: 1px solid rgba(4,215,127,0.2);
+}
+@media (prefers-color-scheme: dark) {
+  .rk-tag { background: rgba(4,215,127,0.15); color: #b3f5db; }
+}

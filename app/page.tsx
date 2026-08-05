@@ -284,6 +284,47 @@ export default function Home() {
     await loadEntries();
   }
 
+  // Assign Owner: <name> to every selected row. Rewrites notes so that
+  // exactly ONE Owner tag lives on each entry — if another owner is
+  // already tagged, they get replaced (so bulk-assigning "Karla" to
+  // rows previously owned by "Diego" cleanly reassigns).
+  async function bulkAssignOwner() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    const raw = prompt(
+      `Assign owner to ${ids.length} entr${ids.length === 1 ? "y" : "ies"}?\n` +
+        `Type a name (e.g. Diego, Karla). Empty = strip existing Owner tag.`
+    );
+    if (raw === null) return; // user cancelled
+    const owner = raw.trim();
+    // Map current id → entry so we can rewrite notes locally, then PATCH
+    const byId = new Map(entries.map((e) => [e.id, e]));
+    await Promise.all(
+      ids.map((id) => {
+        const e = byId.get(id);
+        if (!e) return Promise.resolve();
+        const current = (e.notes ?? "").trim();
+        // Strip any existing "Owner: X" — allow letters, digits, spaces, hyphens
+        const stripped = current
+          .replace(/\s*·?\s*Owner:\s*[A-Za-z][A-Za-z0-9 _-]{0,30}/g, "")
+          .replace(/^·\s*/, "")
+          .trim();
+        const nextNotes = owner
+          ? stripped
+            ? `${stripped} · Owner: ${owner}`
+            : `Owner: ${owner}`
+          : stripped;
+        return fetch(`/api/pools/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ notes: nextNotes }),
+        });
+      })
+    );
+    clearSelection();
+    await loadEntries();
+  }
+
   // ---- URL deep-link state ----
   // On mount: hydrate filters/search from ?query params. On change: push to
   // URL without reload so filter/search state is shareable.
@@ -849,6 +890,7 @@ export default function Home() {
               <button className="filter-chip" onClick={() => bulkUpdate("tried", "Mark tried")}>Mark tried</button>
               <button className="filter-chip" onClick={() => bulkUpdate("new", "Reset to new")}>Reset</button>
               <button className="filter-chip" onClick={() => bulkUpdate("blacklisted", "Blacklist")}>Blacklist</button>
+              <button className="filter-chip" onClick={bulkAssignOwner}>Assign owner…</button>
               <button className="filter-chip danger" onClick={() => bulkUpdate("delete", "Delete")}>Delete</button>
               <button className="filter-chip subtle" onClick={clearSelection}>Clear</button>
             </div>
