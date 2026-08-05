@@ -9,6 +9,13 @@ export interface Ranking {
   yes: number;
   maybe: number;
   no: number;
+  /**
+   * Distribution of calibration Tag values (column B of the source
+   * sheet) seen for candidates at this company. Only populated on
+   * candidate-level uploads. Order is not stable; use the entries
+   * with the highest counts as the primary label(s).
+   */
+  tags?: Record<string, number>;
 }
 
 export interface RecencyRecord {

@@ -82,6 +82,7 @@ function parseCandidateLevelSheet(wb: XLSX.WorkBook): {
   const calibCol = header.findIndex((h) => h === "calibration");
   const dateCol = header.findIndex((h) => h === "date");
   const cohortCol = header.findIndex((h) => h === "cohort");
+  const tagCol = header.findIndex((h) => h === "tag");
   if (companyCol === -1 || calibCol === -1) {
     return { rankings: [], recency: [] };
   }
@@ -93,6 +94,7 @@ function parseCandidateLevelSheet(wb: XLSX.WorkBook): {
     no: number;
     dates: number[]; // unix-ms timestamps of every dated candidate
     cohorts: Set<string>;
+    tags: Map<string, number>; // Tag column histogram (col B)
     total_rows: number; // includes rows with empty calibration / date
   };
   const buckets = new Map<string, Bucket>();
@@ -113,11 +115,16 @@ function parseCandidateLevelSheet(wb: XLSX.WorkBook): {
         no: 0,
         dates: [],
         cohorts: new Set(),
+        tags: new Map(),
         total_rows: 0,
       };
       buckets.set(company, b);
     }
     b.total_rows++;
+    if (tagCol !== -1) {
+      const t = toStr(row[tagCol]).trim();
+      if (t) b.tags.set(t, (b.tags.get(t) ?? 0) + 1);
+    }
 
     const calib = toStr(row[calibCol]).toLowerCase();
     if (calib === "superstar") b.superstar++;
@@ -160,6 +167,9 @@ function parseCandidateLevelSheet(wb: XLSX.WorkBook): {
   const rankings: Ranking[] = aggregated.map((r, i) => ({
     rank: i + 1,
     company: r.company,
+    tags: r.bucket.tags.size > 0
+      ? Object.fromEntries([...r.bucket.tags.entries()].sort((a, b) => b[1] - a[1]))
+      : undefined,
     total_score: r.total_score,
     total_votes: r.total_votes,
     superstar: r.superstar,
