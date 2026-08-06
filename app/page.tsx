@@ -58,6 +58,7 @@ export default function Home() {
 
   // Add form state
   const [newName, setNewName] = useState("");
+  const [newOwner, setNewOwner] = useState("");
   const [newStatus, setNewStatus] = useState<Status>("targeting");
   const [newType, setNewType] = useState<EntryType>("company");
   const [newDomain, setNewDomain] = useState<Domain>("frontier-ai");
@@ -199,6 +200,7 @@ export default function Home() {
   async function addNew(e: React.FormEvent) {
     e.preventDefault();
     if (!newName.trim()) return;
+    const owner = newOwner.trim();
     await fetch("/api/pools", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -207,9 +209,15 @@ export default function Home() {
         status: newStatus,
         type: newType,
         domain: newDomain,
+        // Persist "Owner: X" into notes on create so the tracker's
+        // owner-grouped Featured section picks the new row up.
+        notes: owner ? `Owner: ${owner}` : undefined,
       }),
     });
     setNewName("");
+    // Keep newOwner set — sourcers usually add several candidates
+    // for the same owner in a row, so remembering the pick saves
+    // the retype.
     await loadEntries();
   }
 
@@ -756,6 +764,32 @@ export default function Home() {
             onChange={(e) => setNewName(e.target.value)}
             autoFocus
           />
+          <input
+            placeholder="Owner (e.g., Karla)"
+            value={newOwner}
+            onChange={(e) => setNewOwner(e.target.value)}
+            list="owner-suggestions"
+            style={{ maxWidth: 160 }}
+          />
+          <datalist id="owner-suggestions">
+            {/* Populate from any Owner: tags already in the DB so the
+                sourcer just picks from existing owners on subsequent
+                adds. */}
+            {Array.from(
+              new Set(
+                entries
+                  .map((e) => {
+                    const m = (e.notes ?? "").match(
+                      /Owner:\s*([A-Za-z][A-Za-z0-9 _-]{0,30})/
+                    );
+                    return m ? m[1].trim() : null;
+                  })
+                  .filter((x): x is string => !!x)
+              )
+            ).sort().map((o) => (
+              <option key={o} value={o} />
+            ))}
+          </datalist>
           <select
             value={newStatus}
             onChange={(e) => setNewStatus(e.target.value as Status)}
