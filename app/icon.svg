@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Outer target ring -->
+  <circle cx="16" cy="16" r="14" fill="none" stroke="#04d77f" stroke-width="1.5" opacity="0.35"/>
+  <!-- Middle ring -->
+  <circle cx="16" cy="16" r="9" fill="none" stroke="#04d77f" stroke-width="1.5" opacity="0.55"/>
+  <!-- Solid core dot -->
+  <circle cx="16" cy="16" r="4.5" fill="#04d77f"/>
+</svg>
