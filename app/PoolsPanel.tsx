@@ -176,6 +176,23 @@ export default function PoolsPanel() {
   }, [enriched, q, sortKey, minSourced, calibratedOnly, categoryFilter]);
 
   /**
+   * "Where to source next" recommendations — high-signal pools that are
+   * under-mined. Ignores category filter so the strip stays useful even
+   * when the table is filtered to one category. Requires ≥ 5 calibration
+   * votes so tiny-sample noise doesn't dominate.
+   */
+  const recommendations = useMemo(() => {
+    const candidates = enriched
+      .filter((p) => {
+        if (!p.ranking || p.ranking.total_votes < 5) return false;
+        if (p.ranking.total_score < 15) return false;
+        return true;
+      })
+      .sort((a, b) => worthScore(b) - worthScore(a));
+    return candidates.slice(0, 5);
+  }, [enriched]);
+
+  /**
    * Per-category rollup — restricted to calibrated pools when the filter is
    * on so the coverage view matches what the table below shows.
    */
@@ -287,6 +304,65 @@ export default function PoolsPanel() {
               Synced <b>{timeAgo(state.updatedAt)}</b>
             </div>
           )}
+        </div>
+      )}
+
+      {!state.error && recommendations.length > 0 && (
+        <div className="pools-recs">
+          <div className="pools-recs-head">
+            <div>
+              <div className="pools-recs-eyebrow">WHERE TO SOURCE NEXT</div>
+              <div className="pools-recs-title">
+                {recommendations.length} under-mined pools with strong signal
+              </div>
+            </div>
+            <div className="pools-recs-sub">
+              High calibration score · few candidates sourced so far · one
+              click drafts the query for Claude-in-Chrome
+            </div>
+          </div>
+          <div className="pools-recs-strip">
+            {recommendations.map((p, i) => {
+              const r = p.ranking!;
+              const positiveRate =
+                r.total_votes > 0
+                  ? (r.superstar + r.yes) / r.total_votes
+                  : 0;
+              return (
+                <button
+                  key={p.tag}
+                  className="pools-rec-card"
+                  onClick={() => openPrompt(p)}
+                  title={`${p.tag} · score ${r.total_score.toFixed(1)} · ${p.sourced} sourced`}
+                >
+                  <div className="pools-rec-rank">#{i + 1}</div>
+                  <div className="pools-rec-name">{p.tag}</div>
+                  <div className="pools-rec-cat">
+                    {CATEGORY_LABELS[p.category]}
+                  </div>
+                  <div className="pools-rec-metrics">
+                    <div className="pools-rec-metric">
+                      <span className="pools-rec-num">{worthScore(p).toFixed(2)}</span>
+                      <span className="pools-rec-label">worth</span>
+                    </div>
+                    <div className="pools-rec-metric">
+                      <span className="pools-rec-num">{r.total_score.toFixed(0)}</span>
+                      <span className="pools-rec-label">score</span>
+                    </div>
+                    <div className="pools-rec-metric">
+                      <span className="pools-rec-num">{p.sourced}</span>
+                      <span className="pools-rec-label">sourced</span>
+                    </div>
+                  </div>
+                  <div className="pools-rec-why">
+                    {Math.round(positiveRate * 100)}% pass on {r.total_votes}{" "}
+                    votes · only {p.sourced} in pipeline
+                  </div>
+                  <div className="pools-rec-cta">Draft prompt →</div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -424,11 +500,6 @@ export default function PoolsPanel() {
                           ? "T·C"
                           : p.sources[0] === "tag" ? "T" : "C"}
                       </span>
-                      {p.sampleCalibrations.length > 0 && (
-                        <div className="pools-tag-hint">
-                          &ldquo;{p.sampleCalibrations[0]}&rdquo;
-                        </div>
-                      )}
                     </td>
                     <td className="num">{p.sourced}</td>
                     <td className={`num ${r && r.superstar > 0 ? "num-good" : ""}`}>
