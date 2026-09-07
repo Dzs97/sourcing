@@ -3363,3 +3363,83 @@ select.filter-chip {
     background: linear-gradient(135deg, rgba(4,215,127,0.08) 0%, var(--surface) 90%);
   }
 }
+
+/* AI suggestions header + card additions */
+
+.pools-recs-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pools-recs-freshness {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-fade);
+  letter-spacing: 0.04em;
+}
+.pools-recs-refresh {
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--accent-hover);
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background 100ms;
+}
+.pools-recs-refresh:hover:not(:disabled) { background: var(--accent-soft); }
+.pools-recs-refresh:disabled { opacity: 0.6; cursor: wait; }
+
+.pools-recs-error {
+  padding: 12px 14px;
+  background: rgba(240, 217, 123, 0.18);
+  border: 1px solid rgba(200, 133, 38, 0.4);
+  color: #6b5500;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.pools-recs-error code {
+  background: rgba(0,0,0,0.06);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11.5px;
+}
+@media (prefers-color-scheme: dark) {
+  .pools-recs-error { color: #f0d97b; }
+}
+
+.pools-recs-empty {
+  padding: 18px 16px;
+  text-align: center;
+  color: var(--text-fade);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.pools-rec-similar {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-fade);
+  letter-spacing: 0.02em;
+  margin-top: 2px;
+}
+.pools-rec-similar b { color: var(--text-soft); font-weight: 500; }
+
+/* Give AI cards a subtle sparkle so they read as generative, not just data */
+.pools-rec-card-ai {
+  position: relative;
+}
+.pools-rec-card-ai::before {
+  content: "✦";
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  font-size: 11px;
+  color: var(--accent-hover);
+  opacity: 0.7;
+}
+.pools-rec-card-ai .pools-rec-name { padding-left: 16px; }
+.pools-rec-card-ai .pools-rec-cat { padding-left: 16px; }

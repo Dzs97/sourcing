@@ -10,6 +10,10 @@ import {
   CATEGORY_LABELS,
   type PoolCategory,
 } from "@/lib/pool-categories";
+import type {
+  PoolSuggestion,
+  SuggestionsBundle,
+} from "@/lib/pool-suggestions";
 import PoolPromptModal, { type PromptSeed } from "./PoolPromptModal";
 
 type SortKey =
@@ -80,6 +84,43 @@ export default function PoolsPanel() {
   const [seed, setSeed] = useState<PromptSeed | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
+  // AI suggestions — fetched from /api/pool-suggestions, cached server-side.
+  const [suggestions, setSuggestions] = useState<PoolSuggestion[]>([]);
+  const [suggestionsCached, setSuggestionsCached] = useState<boolean>(false);
+  const [suggestionsAt, setSuggestionsAt] = useState<number | null>(null);
+  const [suggestionsModel, setSuggestionsModel] = useState<string>("");
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [suggestionsError, setSuggestionsError] = useState<string | null>(null);
+
+  async function loadSuggestions(refresh = false) {
+    setSuggestionsLoading(true);
+    setSuggestionsError(null);
+    try {
+      const url = refresh
+        ? "/api/pool-suggestions?refresh=1"
+        : "/api/pool-suggestions";
+      const res = await fetch(url, { cache: "no-store" });
+      const data = (await res.json()) as
+        | (SuggestionsBundle & { ok: true; cached: boolean })
+        | { ok: false; error: string };
+      if (!("ok" in data) || !data.ok) {
+        setSuggestionsError(
+          "error" in data ? data.error : `HTTP ${res.status}`
+        );
+        setSuggestions([]);
+        return;
+      }
+      setSuggestions(data.suggestions);
+      setSuggestionsCached(data.cached);
+      setSuggestionsAt(data.generated_at);
+      setSuggestionsModel(data.model);
+    } catch (e) {
+      setSuggestionsError((e as Error).message);
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  }
+
   async function load() {
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
@@ -134,6 +175,7 @@ export default function PoolsPanel() {
 
   useEffect(() => {
     load();
+    loadSuggestions();
   }, []);
 
   const enriched: EnrichedPool[] = useMemo(() => {
@@ -174,23 +216,6 @@ export default function PoolsPanel() {
     });
     return sorted;
   }, [enriched, q, sortKey, minSourced, calibratedOnly, categoryFilter]);
-
-  /**
-   * "Where to source next" recommendations — high-signal pools that are
-   * under-mined. Ignores category filter so the strip stays useful even
-   * when the table is filtered to one category. Requires ≥ 5 calibration
-   * votes so tiny-sample noise doesn't dominate.
-   */
-  const recommendations = useMemo(() => {
-    const candidates = enriched
-      .filter((p) => {
-        if (!p.ranking || p.ranking.total_votes < 5) return false;
-        if (p.ranking.total_score < 15) return false;
-        return true;
-      })
-      .sort((a, b) => worthScore(b) - worthScore(a));
-    return candidates.slice(0, 5);
-  }, [enriched]);
 
   /**
    * Per-category rollup — restricted to calibrated pools when the filter is
@@ -259,6 +284,11 @@ export default function PoolsPanel() {
     setModalOpen(true);
   }
 
+  function openPromptForName(name: string) {
+    setSeed({ tag: name, yield: undefined });
+    setModalOpen(true);
+  }
+
   return (
     <div className="pools-panel">
       <div className="pools-head">
@@ -307,62 +337,81 @@ export default function PoolsPanel() {
         </div>
       )}
 
-      {!state.error && recommendations.length > 0 && (
+      {!state.error && (
         <div className="pools-recs">
           <div className="pools-recs-head">
             <div>
               <div className="pools-recs-eyebrow">WHERE TO SOURCE NEXT</div>
               <div className="pools-recs-title">
-                {recommendations.length} under-mined pools with strong signal
+                {suggestionsLoading && suggestions.length === 0
+                  ? "Thinking about adjacent pools…"
+                  : suggestions.length > 0
+                  ? `${suggestions.length} AI suggestions — pools not yet in your sheet`
+                  : "AI suggestions"}
               </div>
             </div>
-            <div className="pools-recs-sub">
-              High calibration score · few candidates sourced so far · one
-              click drafts the query for Claude-in-Chrome
+            <div className="pools-recs-actions">
+              {suggestionsAt && (
+                <span className="pools-recs-freshness">
+                  {suggestionsModel === "seed" ? "hand-picked · " :
+                    suggestionsCached ? "cached · " : "fresh · "}
+                  {timeAgo(suggestionsAt)}
+                </span>
+              )}
+              <button
+                className="pools-recs-refresh"
+                onClick={() => loadSuggestions(true)}
+                disabled={suggestionsLoading}
+                title={suggestionsModel === "seed"
+                  ? "Once ANTHROPIC_API_KEY is set, this regenerates via Claude"
+                  : "Regenerate — asks Claude for a new set based on your latest sheet + rankings"}
+              >
+                {suggestionsLoading ? "…" : "↻ Regenerate"}
+              </button>
             </div>
           </div>
-          <div className="pools-recs-strip">
-            {recommendations.map((p, i) => {
-              const r = p.ranking!;
-              const positiveRate =
-                r.total_votes > 0
-                  ? (r.superstar + r.yes) / r.total_votes
-                  : 0;
-              return (
+
+          {suggestionsError ? (
+            <div className="pools-recs-error">
+              <b>Suggestions unavailable:</b> {suggestionsError}
+              {suggestionsError.includes("ANTHROPIC_API_KEY") && (
+                <>
+                  {" "}Add it in <code>.env.local</code> (dev) or Vercel env
+                  (prod), then hit Regenerate.
+                </>
+              )}
+            </div>
+          ) : suggestions.length === 0 && !suggestionsLoading ? (
+            <div className="pools-recs-empty">
+              No suggestions yet. Hit Regenerate to ask Claude for five
+              adjacent pools based on your top-performing pools.
+            </div>
+          ) : (
+            <div className="pools-recs-strip">
+              {suggestions.map((s, i) => (
                 <button
-                  key={p.tag}
-                  className="pools-rec-card"
-                  onClick={() => openPrompt(p)}
-                  title={`${p.tag} · score ${r.total_score.toFixed(1)} · ${p.sourced} sourced`}
+                  key={`${s.name}-${i}`}
+                  className="pools-rec-card pools-rec-card-ai"
+                  onClick={() => openPromptForName(s.name)}
+                  title={`${s.name} — draft a sourcing prompt`}
                 >
                   <div className="pools-rec-rank">#{i + 1}</div>
-                  <div className="pools-rec-name">{p.tag}</div>
+                  <div className="pools-rec-name">{s.name}</div>
                   <div className="pools-rec-cat">
-                    {CATEGORY_LABELS[p.category]}
+                    {CATEGORY_LABELS[s.category as PoolCategory] ??
+                      s.category}
                   </div>
-                  <div className="pools-rec-metrics">
-                    <div className="pools-rec-metric">
-                      <span className="pools-rec-num">{worthScore(p).toFixed(2)}</span>
-                      <span className="pools-rec-label">worth</span>
+                  <div className="pools-rec-why">{s.why}</div>
+                  {s.similarTo && (
+                    <div className="pools-rec-similar">
+                      Similar to <b>{s.similarTo}</b>
                     </div>
-                    <div className="pools-rec-metric">
-                      <span className="pools-rec-num">{r.total_score.toFixed(0)}</span>
-                      <span className="pools-rec-label">score</span>
-                    </div>
-                    <div className="pools-rec-metric">
-                      <span className="pools-rec-num">{p.sourced}</span>
-                      <span className="pools-rec-label">sourced</span>
-                    </div>
-                  </div>
-                  <div className="pools-rec-why">
-                    {Math.round(positiveRate * 100)}% pass on {r.total_votes}{" "}
-                    votes · only {p.sourced} in pipeline
-                  </div>
+                  )}
                   <div className="pools-rec-cta">Draft prompt →</div>
                 </button>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
