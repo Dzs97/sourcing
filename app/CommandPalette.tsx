@@ -20,7 +20,7 @@ export default function CommandPalette({
   open: boolean;
   onClose: () => void;
   entries: Entry[];
-  onNavigate: (tab: "tracker" | "rankings" | "matrix") => void;
+  onNavigate: (tab: "home" | "pools" | "tracker" | "rankings" | "matrix") => void;
   onChangeStatus: (id: string, status: Status) => Promise<void> | void;
 }) {
   const [q, setQ] = useState("");
@@ -38,6 +38,24 @@ export default function CommandPalette({
 
   const commands = useMemo<Command[]>(() => {
     const list: Command[] = [
+      {
+        id: "tab-home",
+        label: "Go to Home",
+        kind: "nav",
+        action: () => {
+          onNavigate("home");
+          onClose();
+        },
+      },
+      {
+        id: "tab-pools",
+        label: "Go to Pools",
+        kind: "nav",
+        action: () => {
+          onNavigate("pools");
+          onClose();
+        },
+      },
       {
         id: "tab-tracker",
         label: "Go to Tracker",

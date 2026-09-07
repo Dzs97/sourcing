@@ -16,7 +16,10 @@ import {
 } from "@/lib/types";
 import RankingsPanel from "./RankingsPanel";
 import MatrixPanel from "./MatrixPanel";
+import HomePanel from "./HomePanel";
+import PoolsPanel from "./PoolsPanel";
 import CommandPalette from "./CommandPalette";
+import HandoffModal, { type HandoffSeed } from "./HandoffModal";
 import { fuzzyName } from "@/lib/name-normalize";
 
 const DOMAINS = Object.keys(DOMAIN_LABELS) as Domain[];
@@ -36,9 +39,9 @@ export default function Home() {
   const [showAdd, setShowAdd] = useState(false);
 
   // Top-level tab switching between the tracker and the rankings view
-  const [mainTab, setMainTab] = useState<"tracker" | "rankings" | "matrix">(
-    "tracker"
-  );
+  const [mainTab, setMainTab] = useState<
+    "home" | "pools" | "tracker" | "rankings" | "matrix"
+  >("home");
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
@@ -52,6 +55,14 @@ export default function Home() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   // Command palette open state (⌘K)
   const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Handoff modal (push candidate → Google Workspace)
+  const [handoffOpen, setHandoffOpen] = useState(false);
+  const [handoffSeed, setHandoffSeed] = useState<HandoffSeed | null>(null);
+  function openHandoff(seed: HandoffSeed) {
+    setHandoffSeed(seed);
+    setHandoffOpen(true);
+  }
 
   // Archive collapse state — collapsed by default to keep main view clean
   const [archiveOpen, setArchiveOpen] = useState(false);
@@ -340,7 +351,14 @@ export default function Home() {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
     const t = url.searchParams.get("tab");
-    if (t === "rankings" || t === "matrix" || t === "tracker") setMainTab(t);
+    if (
+      t === "home" ||
+      t === "pools" ||
+      t === "rankings" ||
+      t === "matrix" ||
+      t === "tracker"
+    )
+      setMainTab(t);
     const s = url.searchParams.get("status");
     if (s) setStatusFilter(s as Status | "all");
     const tp = url.searchParams.get("type");
@@ -358,7 +376,7 @@ export default function Home() {
       if (v && v !== def) url.searchParams.set(k, v);
       else url.searchParams.delete(k);
     };
-    set("tab", mainTab, "tracker");
+    set("tab", mainTab, "home");
     set("status", statusFilter, "all");
     set("type", typeFilter, "all");
     set("domain", domainFilter, "all");
@@ -517,6 +535,18 @@ export default function Home() {
       {/* MAIN TAB SWITCHER */}
       <div className="main-tabs">
         <button
+          className={`main-tab ${mainTab === "home" ? "active" : ""}`}
+          onClick={() => setMainTab("home")}
+        >
+          Home
+        </button>
+        <button
+          className={`main-tab ${mainTab === "pools" ? "active" : ""}`}
+          onClick={() => setMainTab("pools")}
+        >
+          Pools
+        </button>
+        <button
           className={`main-tab ${mainTab === "tracker" ? "active" : ""}`}
           onClick={() => setMainTab("tracker")}
         >
@@ -536,10 +566,22 @@ export default function Home() {
         </button>
       </div>
 
-      {mainTab === "matrix" ? (
+      {mainTab === "home" ? (
+        <HomePanel
+          entries={entries}
+          onNavigate={setMainTab}
+          onSearch={setSearch}
+        />
+      ) : mainTab === "pools" ? (
+        <PoolsPanel />
+      ) : mainTab === "matrix" ? (
         <MatrixPanel entries={entries} />
       ) : mainTab === "rankings" ? (
-        <RankingsPanel entries={entries} onPromote={promoteByName} />
+        <RankingsPanel
+          entries={entries}
+          onPromote={promoteByName}
+          onHandoff={openHandoff}
+        />
       ) : (
       <>
       {/* FEATURED — TARGETING */}
@@ -1393,6 +1435,12 @@ export default function Home() {
         entries={entries}
         onNavigate={setMainTab}
         onChangeStatus={changeStatus}
+      />
+
+      <HandoffModal
+        open={handoffOpen}
+        seed={handoffSeed}
+        onClose={() => setHandoffOpen(false)}
       />
     </main>
   );

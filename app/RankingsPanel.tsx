@@ -54,9 +54,16 @@ type SortKey = "rank" | "score" | "votes" | "superstar" | "recency";
 interface RankingsPanelProps {
   entries: Entry[];
   onPromote: (companyName: string, status: Status) => Promise<void>;
+  onHandoff?: (seed: {
+    candidateName: string;
+    currentCompany?: string;
+    pool?: string;
+    score?: number;
+    scoreBreakdown?: string;
+  }) => void;
 }
 
-export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps) {
+export default function RankingsPanel({ entries, onPromote, onHandoff }: RankingsPanelProps) {
   const [bundle, setBundle] = useState<RankingsBundle | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("untried");
@@ -576,6 +583,23 @@ export default function RankingsPanel({ entries, onPromote }: RankingsPanelProps
                           title="Move to targeting"
                         >
                           → Target
+                        </button>
+                      )}
+                      {onHandoff && !isUnranked && r.total_score > 0 && (
+                        <button
+                          className="entry-action"
+                          onClick={() =>
+                            onHandoff({
+                              candidateName: "",
+                              currentCompany: r.company,
+                              pool: r.company,
+                              score: r.total_score,
+                              scoreBreakdown: `${r.superstar}★ · ${r.yes} yes · ${r.maybe} maybe · ${r.no} no`,
+                            })
+                          }
+                          title="Push a person from this pool to Google Workspace"
+                        >
+                          ↗ Handoff
                         </button>
                       )}
                     </td>
