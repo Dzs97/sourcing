@@ -7,7 +7,11 @@
  *
  * The Ranking column is optional — the app assumes it may or may not be
  * present. When absent, `avgRanking` is null.
+ *
+ * Pool name aliases from POOL_ALIASES are applied before bucketing so
+ * "Palantir" and "Palantir Technologies" combine into one pool.
  */
+import { canonicalPoolName } from "./pool-aliases";
 
 export interface CandidateRow {
   cohort: string;
@@ -179,16 +183,17 @@ export function computeYields(rows: CandidateRow[]): PoolYield[] {
       labels.push({ label: r.currentCompany, source: "company" });
 
     // Dedup within a single row: if Tag and Current Company normalize the
-    // same, count this candidate once toward that pool (not twice).
+    // same (after aliasing), count this candidate once toward that pool.
     const seenKeys = new Set<string>();
     for (const { label, source } of labels) {
-      const key = norm(label);
+      const canonical = canonicalPoolName(label);
+      const key = norm(canonical);
       if (!key || seenKeys.has(key)) continue;
       seenKeys.add(key);
 
       let bucket = groups.get(key);
       if (!bucket) {
-        bucket = { display: label, rows: [], sources: new Set() };
+        bucket = { display: canonical, rows: [], sources: new Set() };
         groups.set(key, bucket);
       }
       bucket.rows.push(r);
