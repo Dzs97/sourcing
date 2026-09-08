@@ -3443,3 +3443,6 @@ select.filter-chip {
 }
 .pools-rec-card-ai .pools-rec-name { padding-left: 16px; }
 .pools-rec-card-ai .pools-rec-cat { padding-left: 16px; }
+
+/* Coverage % cell in Pools table — quieter tone for very-thin coverage */
+.pools-cov-thin { color: var(--text-fade); }

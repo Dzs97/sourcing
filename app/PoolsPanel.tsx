@@ -10,6 +10,7 @@ import {
   CATEGORY_LABELS,
   type PoolCategory,
 } from "@/lib/pool-categories";
+import { POOL_TEAM_SIZES } from "@/lib/pool-team-sizes";
 import type {
   PoolSuggestion,
   SuggestionsBundle,
@@ -18,6 +19,7 @@ import PoolPromptModal, { type PromptSeed } from "./PoolPromptModal";
 
 type SortKey =
   | "worth"
+  | "coverage"
   | "calibration"
   | "superstar"
   | "yes"
@@ -36,6 +38,18 @@ type SortKey =
 function worthScore(p: EnrichedPool): number {
   if (!p.ranking || p.ranking.total_votes === 0) return -Infinity;
   return p.ranking.total_score / (p.sourced + 10);
+}
+
+/**
+ * Percentage of the pool's estimated engineering team we've touched.
+ * Capped at 100 (sometimes sourcer-count outstrips a stale team-size
+ * estimate, especially at fast-growing startups). Returns null when we
+ * don't have a size estimate for the pool.
+ */
+function coveragePercent(p: EnrichedPool): number | null {
+  const size = POOL_TEAM_SIZES[p.tag];
+  if (!size || size <= 0) return null;
+  return Math.min(100, (p.sourced / size) * 100);
 }
 
 interface State {
@@ -199,6 +213,11 @@ export default function PoolsPanel() {
       switch (sortKey) {
         case "worth":
           return worthScore(b) - worthScore(a);
+        case "coverage": {
+          const ca = coveragePercent(a) ?? -1;
+          const cb = coveragePercent(b) ?? -1;
+          return cb - ca;
+        }
         case "calibration": {
           const sa = a.ranking?.total_score ?? -Infinity;
           const sb = b.ranking?.total_score ?? -Infinity;
@@ -466,6 +485,7 @@ export default function PoolsPanel() {
           {(
             [
               ["worth", "Worth another hour"],
+              ["coverage", "Coverage %"],
               ["calibration", "Score"],
               ["superstar", "★ Superstars"],
               ["yes", "Yes"],
@@ -526,6 +546,7 @@ export default function PoolsPanel() {
                 <th className="num">No</th>
                 <th className="num" title="Calibration score: ★·10 + Yes·2 + Maybe·0.25 − No·0.5">Score</th>
                 <th className="num" title="Score / (Sourced + 10). Higher = under-mined pool with strong signal, worth another hour of sourcing.">Worth</th>
+                <th className="num" title="Sourced / estimated engineering team size. Team sizes are ballpark rounded numbers (500, 1000, 2000, etc.), not exact.">Coverage</th>
                 <th>Recent</th>
                 <th></th>
               </tr>
@@ -562,6 +583,18 @@ export default function PoolsPanel() {
                     </td>
                     <td className={`num ${hasCal && worthScore(p) >= 1 ? "num-good" : ""}`}>
                       {hasCal ? worthScore(p).toFixed(2) : "—"}
+                    </td>
+                    <td className="num" title={POOL_TEAM_SIZES[p.tag] ? `${p.sourced} / ~${POOL_TEAM_SIZES[p.tag].toLocaleString()} eng` : "no team-size estimate"}>
+                      {(() => {
+                        const cov = coveragePercent(p);
+                        if (cov === null) return "—";
+                        const pctText = cov >= 10 ? `${cov.toFixed(0)}%` : `${cov.toFixed(1)}%`;
+                        return (
+                          <span className={cov >= 25 ? "num-good" : cov >= 5 ? "" : "pools-cov-thin"}>
+                            {pctText}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="pools-recent">{p.recentSourcedDate || "—"}</td>
                     <td className="pools-actions-cell">
