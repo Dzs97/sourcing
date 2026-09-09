@@ -481,7 +481,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Bronx High School": 3000,     // Bronx Science — top NYC STEM HS               // Illinois Math & Science Academy — top STEM HS, ~650 students
 
   // Missed AI startups
-  "Anysphere": 150,          // Cursor's parent org (aliases would make these one)
+  // Anysphere merged into Cursor via alias.
   "Windsurf": 100,           // AI IDE company
 
   // ═════════════════════════════════════════════════════════════

@@ -26,6 +26,7 @@ export const POOL_ALIASES: Record<string, string> = {
   "xAi": "xAI",
   "Reddit, Inc.": "Reddit",
   "Snap": "Snap Inc.",  // short-form → canonical
+  "Anysphere": "Cursor",  // parent company → product name Diego sources under
 
   // ── Universities — merge long/short forms ───────────────────
   "Massachusetts Institute of Technology": "MIT",
