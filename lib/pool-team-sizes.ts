@@ -24,7 +24,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   // 1. Meta — ~78k total. SWE (product + infra + ML SWE): ~25k. Excludes
   //    UX researchers, PMs, hardware (Reality Labs). Facebook + Instagram
   //    fold in here via alias.
-  "Meta": 25000,
+  "Meta": 20000,
 
   // 2. Palantir — ~4700 total. Split: FDEs ~800, Foundry SWE ~800,
   //    core software SWE ~600. Rounded to ~1500 SWE.
@@ -32,7 +32,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
 
   // 3. Google — ~185k total. Eng ~55k of which SWE-titled ~35k
   //    (excludes SRE, hardware, quant/research).
-  "Google": 35000,
+  "Google": 30000,
 
   // 4. MIT — CS undergrads ~800 across 4 years + EECS ~700, plus graduate
   //    CS/EE ~500. Addressable undergrad+grad ~1500.
@@ -60,7 +60,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
 
   // 10. Tesla — ~140k total but mostly manufacturing. Autopilot ~3000 +
   //     Vehicle Software ~1500 + Charging/Grid SW ~500 = ~5000 SWE.
-  "Tesla": 5000,
+  "Tesla": 3000,
 
   // 11. Princeton — CS undergrads ~500 across 4 years plus ~100 grad. 600.
   "Princeton": 600,
@@ -70,10 +70,10 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
 
   // 13. Anduril — ~7000 total (grew fast). Split: hardware ~3500,
   //     software eng ~1500, GTM/ops ~2000.
-  "Anduril": 1500,
+  "Anduril": 1000,
 
   // 14. AWS — subset of Amazon at ~120k. SWE ~20k (services + infra).
-  "AWS": 20000,
+  "AWS": 15000,
 
   // 15. Figma — ~2000 total. Eng ~900, SWE ~750.
   "Figma": 800,
@@ -83,7 +83,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Anthropic": 900,
 
   // 17. Bloomberg — ~21k total. Eng ~8k, SWE ~6k (Terminal + backend).
-  "Bloomberg": 6000,
+  "Bloomberg": 5000,
 
   // 18. Jane Street — ~3000 total. Tech ~1800 (mix). Pure SWE (not
   //     quant researchers) ~1000.
@@ -97,7 +97,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
 
   // 21. Apple — ~165k total. Eng ~30k (majority hardware/silicon).
   //     Pure SWE ~15k (Services, OS, apps, ML platforms).
-  "Apple": 15000,
+  "Apple": 10000,
 
   // 22. SAIL — Stanford AI Lab. ~500 active (faculty + PhDs + postdocs
   //     + eng staff across affiliated groups).
@@ -114,7 +114,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
 
   // 26. Microsoft — ~230k total. Eng ~90k, SWE ~50k (excludes CX, ops,
   //     sales). Azure + Copilot + Office + Windows.
-  "Microsoft": 50000,
+  "Microsoft": 40000,
 
   // 27. Rippling — ~3500 total. Eng ~1500, SWE ~1200.
   "Rippling": 1200,
@@ -127,7 +127,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
 
   // 30. Waymo — ~2500 total. Eng ~1500, SWE ~1200 (excludes hardware +
   //     research scientists).
-  "Waymo": 1200,
+  "Waymo": 800,
 
   // 31. Stanford — CS undergrads ~1200 + CS/EE grad ~800 = 2000.
   "Stanford": 2000,
@@ -150,14 +150,14 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
 
   // 37. SpaceX — ~13k total, majority hardware/manufacturing. SW eng
   //     ~2000 (Starlink, Dragon avionics, ground software).
-  "SpaceX": 2500,
+  "SpaceX": 1500,
 
   // 38. Snowflake — ~7500 total. Eng ~3000, SWE ~2500.
   "Snowflake": 2500,
 
   // 39. NVIDIA — ~35k total. Chip design ~15k, driver + CUDA + DGX SW
   //     ~5000, robotics/AV software ~2000. Total SWE ~5000.
-  "NVIDIA": 5000,
+  "NVIDIA": 3500,
 
   // 40. Notion — ~800 total. Eng ~400, SWE ~350.
   "Notion": 400,
@@ -392,20 +392,20 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Susquehanna International Group": 700,
 
   // Robotics tail
-  "Cruise": 500,
-  "Zoox": 1000,
-  "Aurora": 800,
-  "Nuro": 400,
+  "Cruise": 250,
+  "Zoox": 500,
+  "Aurora": 500,
+  "Nuro": 200,
   "WeRide": 400,
-  "Rivian": 2500,
+  "Rivian": 500,
   "Waabi": 150,
   "Viam": 100,
   "Gecko Robotics": 200,
 
   // Defense tail
-  "Blue Origin": 4000,
-  "Neuralink": 300,
-  "MIT Lincoln Laboratory": 4000,
+  "Blue Origin": 1000,
+  "Neuralink": 80,
+  "MIT Lincoln Laboratory": 1000,
 
   // Research labs tail
   "Arc Institute": 150,
@@ -437,7 +437,8 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Nourish": 200,
 
   // Health tech tail
-  "Genesis Therapeutics": 150,
+  "Genesis Therapeutics": 50,
+  "Insitro": 60,           // ~200 total, mostly bio scientists — SWE ~60
   "Benchling": 300,
   "Brain Co.": 200,
 
@@ -447,7 +448,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
 
   // Companies
   "Modal": 120,             // AI infra startup — small elite team
-  "Verkada": 500,          // Enterprise cameras/security. ~2000 total, ~800 eng, ~500 SWE
+  "Verkada": 300,          // Enterprise cameras/security. ~2000 total, ~800 eng, ~500 SWE
   "Coca-Cola": 500,        // Massive company but tech is small; Freestyle IoT + digital ~500 SWE
   "Quora": 80,             // Small; ~200 total, ~80 SWE (Poe team lifts this)
   "Persona": 200,          // Identity verification; ~500 total, ~200 eng, ~100 SWE
