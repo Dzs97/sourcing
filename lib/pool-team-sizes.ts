@@ -199,7 +199,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   // Foundation labs
   "Mistral AI": 200,
   "Cohere": 400,
-  "Character.AI": 30,
+  "Character.AI": 50,
   "Thinking Machines Lab": 100,
   "World Labs": 80,
   "Liquid AI": 120,
@@ -232,7 +232,8 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "YouTube": 4000,
 
   // AI startups
-  "Mercor": 100,
+  // Mercor grew fast in 2025 — closer to ~250 now (was 100).
+  "Mercor": 250,
   "Decagon": 50,
   "Sierra": 100,
   "Cognition": 50,
@@ -242,16 +243,16 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Anyscale": 200,
   "Together AI": 150,
   "Etched": 40,
-  "Cartesia": 40,
-  "Suno": 30,
-  "Nooks": 50,
+  "Cartesia": 60,
+  "Suno": 80,
+  "Nooks": 80,
   "Moveworks": 500,
   "Clay": 100,
   "LangChain": 80,
   "EliseAI": 200,
   "Snorkel AI": 100,
-  "Rox": 30,
-  "Nominal": 30,
+  "Rox": 40,
+  "Nominal": 50,
   "Actively AI": 30,
   "Rogo": 40,
   "Resolve AI": 30,
@@ -264,7 +265,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Watershed": 200,
   "Magic": 30,
   "Fireworks AI": 80,
-  "Chalk": 30,
+  "Chalk": 60,
   "Reve": 30,
   "Arize AI": 100,
   "DatologyAI": 40,
@@ -285,7 +286,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Physical Intelligence": 50,
   "Applied Compute": 30,
   "Surge AI": 150,
-  "Mechanize, Inc.": 30,
+  "Mechanize, Inc.": 40,
   "Latent": 20,
   "David AI": 30,
   "Poetic": 15,
@@ -417,7 +418,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Georgia Tech": 3000,
   "UT Austin": 2500,
   "UC Berkeley": 3000,
-  "CMU": 2500,
+  "CMU": 3500,             // CMU CS is massive: undergrad + huge SCS grad program
   "NYU": 1500,
 
   // Consumer tail
@@ -439,4 +440,45 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Genesis Therapeutics": 150,
   "Benchling": 300,
   "Brain Co.": 200,
+
+  // ═════════════════════════════════════════════════════════════
+  // Pools 51-150 additions (2026-09-08 careful pass)
+  // ═════════════════════════════════════════════════════════════
+
+  // Companies
+  "Modal": 100,             // AI infra startup — small elite team
+  "Verkada": 500,          // Enterprise cameras/security. ~2000 total, ~800 eng, ~500 SWE
+  "Coca-Cola": 500,        // Massive company but tech is small; Freestyle IoT + digital ~500 SWE
+  "Quora": 80,             // Small; ~200 total, ~80 SWE (Poe team lifts this)
+  "Persona": 100,          // Identity verification; ~500 total, ~200 eng, ~100 SWE
+
+  // Universities (CS undergrads across 4 years, + grad)
+  "U. Toronto": 2500,      // Large CS program, huge Vector Institute pipeline
+  "Rice": 400,             // Small elite; CS ~350 + grad ~50
+  "Williams": 150,         // Small liberal arts college; CS ~120-150
+  "Johns Hopkins": 500,    // CS ~400 + grad ~100
+  "Amherst": 120,          // Small liberal arts; CS ~100
+  "Dartmouth": 300,        // CS ~250 + grad ~50
+
+  // Top STEM high schools (total enrollment — these are magnet
+  // schools where nearly all students are technical)
+  "The Harker School": 200,  // Bay Area private, ~750 students, ~200 heaviest-STEM
+  "Lynbrook": 500,           // Cupertino public, ~1800 students, ~500 heaviest CS
+  "TJ": 1900,                // Thomas Jefferson HSST, all STEM ~1900
+  "Stuy": 3300,              // Stuyvesant HS NYC, all STEM ~3300
+
+  // Research institutes
+  "Vector Institute": 150,   // Toronto AI research institute; researchers + PhDs
+  "Broad": 400,              // Broad Institute — MIT/Harvard genomics; ~1500 total, ~400 computational
+
+  // More universities
+  "UCLA": 1500,              // Large public CS program, undergrad + grad
+  "IMSA": 650,
+  "Bronx High School": 3000,     // Bronx Science — top NYC STEM HS               // Illinois Math & Science Academy — top STEM HS, ~650 students
+
+  // Missed AI startups
+  "Anysphere": 150,          // Cursor's parent org (aliases would make these one)
+  "Windsurf": 100,           // AI IDE company
+
+  // ═════════════════════════════════════════════════════════════
 };

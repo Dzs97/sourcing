@@ -25,6 +25,7 @@ export const POOL_ALIASES: Record<string, string> = {
   "Deepmind": "Google DeepMind",
   "xAi": "xAI",
   "Reddit, Inc.": "Reddit",
+  "Snap": "Snap Inc.",  // short-form → canonical
 
   // ── Universities — merge long/short forms ───────────────────
   "Massachusetts Institute of Technology": "MIT",
@@ -46,6 +47,7 @@ export const POOL_ALIASES: Record<string, string> = {
   "Carnegie Mellon University": "CMU",
   "University of California, Berkeley": "UC Berkeley",
   "UC Berkeley Electrical Engineering & Computer Sciences (EECS)": "UC Berkeley",
+  "Berkeley": "UC Berkeley",  // short-form → canonical
   "University of Chicago": "UChicago",
   "Northwestern University": "Northwestern",
   "University of Illinois Urbana-Champaign": "UIUC",
