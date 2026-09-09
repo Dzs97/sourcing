@@ -24,7 +24,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   // 1. Meta — ~78k total. SWE (product + infra + ML SWE): ~25k. Excludes
   //    UX researchers, PMs, hardware (Reality Labs). Facebook + Instagram
   //    fold in here via alias.
-  "Meta": 16000,
+  "Meta": 15000,
 
   // 2. Palantir — ~4700 total. Split: FDEs ~800, Foundry SWE ~800,
   //    core software SWE ~600. Rounded to ~1500 SWE.
@@ -66,7 +66,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Princeton": 600,
 
   // 12. xAI — ~1500 total, mostly technical. SWE (not research) ~800.
-  "xAI": 800,
+  "xAI": 600,
 
   // 13. Anduril — ~7000 total (grew fast). Split: hardware ~3500,
   //     software eng ~1500, GTM/ops ~2000.
@@ -80,7 +80,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
 
   // 16. Anthropic — ~1500 total (late 2025). Research ~400, SWE ~700
   //     (product, infra, applied ML), remainder policy/ops/GTM.
-  "Anthropic": 700,
+  "Anthropic": 600,
 
   // 17. Bloomberg — ~21k total. Eng ~8k, SWE ~6k (Terminal + backend).
   "Bloomberg": 3500,
@@ -104,7 +104,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "SAIL": 500,
 
   // 23. UIUC — CS + CS+X undergrads ~2500 + grads ~500 = 3000.
-  "UIUC": 3000,
+  "UIUC": 2500,
 
   // 24. Harvard — CS undergrads ~450 across 4 years, plus ~100 grad. 550.
   "Harvard": 550,
@@ -120,7 +120,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Rippling": 900,
 
   // 28. Glean — ~600 total. Eng ~350, SWE ~300.
-  "Glean": 350,
+  "Glean": 300,
 
   // 29. Scale AI — ~1500 total (excluding contractors). Eng ~800, SWE ~600.
   "Scale AI": 600,
@@ -186,7 +186,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "DoorDash": 2000,
 
   // 48. Perplexity — ~200 total, most technical. SWE ~150.
-  "Perplexity": 200,
+  "Perplexity": 150,
 
   // 49. Coinbase — ~4500 total. Eng ~2000, SWE ~1500.
   "Coinbase": 1000,
@@ -197,43 +197,43 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   // ══════ Long tail — earlier best-effort estimates ══════
 
   // Foundation labs
-  "Mistral AI": 200,
-  "Cohere": 300,
+  "Mistral AI": 150,
+  "Cohere": 200,
   "Character.AI": 50,
-  "Thinking Machines Lab": 150,
+  "Thinking Machines Lab": 100,
   "World Labs": 80,
   "Liquid AI": 120,
   "SambaNova Systems": 300,
   "Reka": 60,
   "Inflection": 30,
-  "Microsoft AI": 1500,
+  "Microsoft AI": 1000,
   "SpaceXAI": 50,
 
   // Big tech tail
-  "Netflix": 2000,
+  "Netflix": 1500,
   "ByteDance": 18000,
   "Snap Inc.": 1000,
   "LinkedIn": 3500,
   "Salesforce": 6000,
-  "Slack": 1500,
-  "ServiceNow": 4000,
-  "Adobe": 4000,
+  "Slack": 1200,
+  "ServiceNow": 3500,
+  "Adobe": 3500,
   "Cisco": 5000,
-  "Atlassian": 2500,
+  "Atlassian": 2000,
   "Dropbox": 800,
-  "HubSpot": 1500,
-  "Intuit": 3500,
-  "Spotify": 1800,
+  "HubSpot": 1000,
+  "Intuit": 3000,
+  "Spotify": 1500,
   "X": 1000,
-  "Oracle": 15000,
-  "IBM": 15000,
+  "Oracle": 12000,
+  "IBM": 10000,
   "Veeva Systems": 2000,
-  "Twitch": 1000,
+  "Twitch": 800,
   "YouTube": 3000,
 
   // AI startups
   // Mercor grew fast in 2025 — closer to ~250 now (was 100).
-  "Mercor": 250,
+  "Mercor": 200,
   "Decagon": 150,
   "Sierra": 120,
   "Cognition": 100,
@@ -241,12 +241,12 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Codeium": 100,
   "Cursor": 250,
   "Anyscale": 200,
-  "Together AI": 150,
-  "Etched": 80,
+  "Together AI": 100,
+  "Etched": 60,
   "Cartesia": 60,
   "Suno": 80,
   "Nooks": 80,
-  "Moveworks": 500,
+  "Moveworks": 400,
   "Clay": 100,
   "LangChain": 80,
   "EliseAI": 200,
@@ -265,7 +265,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Watershed": 200,
   "Magic": 30,
   "Fireworks AI": 80,
-  "Chalk": 60,
+  "Chalk": 50,
   "Reve": 30,
   "Arize AI": 100,
   "DatologyAI": 40,
@@ -281,9 +281,9 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Vultron": 30,
   "Hebbia": 100,
   "Tavus": 50,
-  "ElevenLabs": 150,
+  "ElevenLabs": 100,
   "Adept": 30,
-  "Physical Intelligence": 150,
+  "Physical Intelligence": 100,
   "Applied Compute": 30,
   "Surge AI": 150,
   "Mechanize, Inc.": 40,
@@ -315,11 +315,11 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Auctor": 20,
   "&AI": 20,
   "Mintlify": 40,
-  "Neo": 30,
+  "Neo": 500,
 
   // Data / infra tail
-  "Datadog": 1800,
-  "MongoDB": 1200,
+  "Datadog": 1500,
+  "MongoDB": 1000,
   "Crusoe": 300,
   "Cockroach Labs": 300,
   "Hightouch": 100,
@@ -328,10 +328,10 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Fastly": 300,
   "Nutanix": 1500,
   "InterSystems": 2000,
-  "Vanta": 400,
+  "Vanta": 300,
   "Vectra AI": 300,
-  "Palo Alto Networks": 3000,
-  "Rubrik": 1000,
+  "Palo Alto Networks": 2500,
+  "Rubrik": 800,
   "Okta": 1500,
   "Semgrep": 100,
   "Abnormal AI": 200,
@@ -356,7 +356,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   // Fintech tail
   "Brex": 350,
   "Plaid": 500,
-  "Wealthfront": 150,
+  "Wealthfront": 100,
   "Affirm": 500,
   "Block": 3500,
   "Square": 3500,
@@ -426,11 +426,11 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   "Lyft": 700,
   "Discord": 300,
   "Reddit": 500,
-  "Pinterest": 1000,
+  "Pinterest": 800,
   "Strava": 250,
   "Whatnot": 300,
   "Patreon": 200,
-  "Duolingo": 300,
+  "Duolingo": 250,
   "Handshake": 150,
   "IXL Learning": 500,
   "Epic": 2000,
@@ -439,7 +439,7 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
   // Health tech tail
   "Genesis Therapeutics": 50,
   "Insitro": 60,           // ~200 total, mostly bio scientists — SWE ~60
-  "Benchling": 300,
+  "Benchling": 250,
   "Brain Co.": 200,
 
   // ═════════════════════════════════════════════════════════════
@@ -474,7 +474,8 @@ export const POOL_TEAM_SIZES: Record<string, number> = {
 
   // Additions from top-scorers pass:
   "Exa": 50,
-  "Parallel Web Systems": 30,              // Broad Institute — MIT/Harvard genomics; ~1500 total, ~400 computational
+  "Parallel Web Systems": 30,
+  "Cape": 30,              // Broad Institute — MIT/Harvard genomics; ~1500 total, ~400 computational
 
   // More universities
   "UCLA": 1500,              // Large public CS program, undergrad + grad
