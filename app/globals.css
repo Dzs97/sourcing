@@ -3446,3 +3446,11 @@ select.filter-chip {
 
 /* Coverage % cell in Pools table — quieter tone for very-thin coverage */
 .pools-cov-thin { color: var(--text-fade); }
+
+.pools-coverage-cell { white-space: nowrap; }
+.pools-cov-est {
+  color: var(--text-fade);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+}

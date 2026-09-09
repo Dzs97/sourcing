@@ -540,13 +540,13 @@ export default function PoolsPanel() {
               <tr>
                 <th>Pool</th>
                 <th className="num" title="Candidates sourced from this pool (from your sheet)">Sourced</th>
+                <th className="num" title="Sourced ÷ estimated SWE team size. Coverage % · estimated team size. Estimates are ballpark rounded numbers (500, 1000, 2000, etc.), not exact.">Coverage</th>
                 <th className="num" title="Superstars (from calibration data)">★</th>
                 <th className="num">Yes</th>
                 <th className="num">Maybe</th>
                 <th className="num">No</th>
                 <th className="num" title="Calibration score: ★·10 + Yes·2 + Maybe·0.25 − No·0.5">Score</th>
                 <th className="num" title="Score / (Sourced + 10). Higher = under-mined pool with strong signal, worth another hour of sourcing.">Worth</th>
-                <th className="num" title="Sourced / estimated engineering team size. Team sizes are ballpark rounded numbers (500, 1000, 2000, etc.), not exact.">Coverage</th>
                 <th>Recent</th>
                 <th></th>
               </tr>
@@ -572,6 +572,22 @@ export default function PoolsPanel() {
                       </span>
                     </td>
                     <td className="num">{p.sourced}</td>
+                    <td className="num pools-coverage-cell">
+                      {(() => {
+                        const cov = coveragePercent(p);
+                        const size = POOL_TEAM_SIZES[p.tag];
+                        if (cov === null || !size) return "—";
+                        const pctText = cov >= 10 ? `${cov.toFixed(0)}%` : `${cov.toFixed(1)}%`;
+                        const sizeText = size >= 1000 ? `${(size / 1000).toFixed(size % 1000 === 0 ? 0 : 1)}k` : `${size}`;
+                        const cls = cov >= 25 ? "num-good" : cov >= 5 ? "" : "pools-cov-thin";
+                        return (
+                          <>
+                            <span className={cls}>{pctText}</span>
+                            <span className="pools-cov-est"> / {sizeText}</span>
+                          </>
+                        );
+                      })()}
+                    </td>
                     <td className={`num ${r && r.superstar > 0 ? "num-good" : ""}`}>
                       {hasCal ? (r!.superstar || "·") : "—"}
                     </td>
@@ -583,18 +599,6 @@ export default function PoolsPanel() {
                     </td>
                     <td className={`num ${hasCal && worthScore(p) >= 1 ? "num-good" : ""}`}>
                       {hasCal ? worthScore(p).toFixed(2) : "—"}
-                    </td>
-                    <td className="num" title={POOL_TEAM_SIZES[p.tag] ? `${p.sourced} / ~${POOL_TEAM_SIZES[p.tag].toLocaleString()} eng` : "no team-size estimate"}>
-                      {(() => {
-                        const cov = coveragePercent(p);
-                        if (cov === null) return "—";
-                        const pctText = cov >= 10 ? `${cov.toFixed(0)}%` : `${cov.toFixed(1)}%`;
-                        return (
-                          <span className={cov >= 25 ? "num-good" : cov >= 5 ? "" : "pools-cov-thin"}>
-                            {pctText}
-                          </span>
-                        );
-                      })()}
                     </td>
                     <td className="pools-recent">{p.recentSourcedDate || "—"}</td>
                     <td className="pools-actions-cell">
