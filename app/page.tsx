@@ -67,6 +67,24 @@ export default function Home() {
   // Archive collapse state — collapsed by default to keep main view clean
   const [archiveOpen, setArchiveOpen] = useState(false);
 
+  // Tertiary-tier collapse state — persisted per-viewer in localStorage so
+  // the choice survives reloads. Default collapsed since tertiary is
+  // by definition low-priority.
+  const [tertiaryOpen, setTertiaryOpen] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const v = window.localStorage.getItem("tertiary-open");
+      if (v === "1") setTertiaryOpen(true);
+    } catch {}
+  }, []);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem("tertiary-open", tertiaryOpen ? "1" : "0");
+    } catch {}
+  }, [tertiaryOpen]);
+
   // Add form state
   const [newName, setNewName] = useState("");
   const [newOwner, setNewOwner] = useState("");
@@ -731,12 +749,21 @@ export default function Home() {
 
             {targetingTertiaryByDomain.length > 0 && (
               <>
-                <div className="targeting-tier-label targeting-tier-label-tertiary">
+                <button
+                  className="targeting-tier-label targeting-tier-label-tertiary tertiary-toggle"
+                  onClick={() => setTertiaryOpen((v) => !v)}
+                  aria-expanded={tertiaryOpen}
+                  title={tertiaryOpen ? "Collapse tertiary" : "Expand tertiary"}
+                >
+                  <span className="tertiary-caret">
+                    {tertiaryOpen ? "▾" : "▸"}
+                  </span>
                   Tertiary targets
                   <span className="targeting-tier-count">
                     {targetingTertiary.length}
                   </span>
-                </div>
+                </button>
+                {tertiaryOpen && (
                 <div className="targeting-groups targeting-groups-tertiary">
                   {targetingTertiaryByDomain.map(([domain, items]) => (
                     <div key={`tertiary-${domain}`} className="targeting-group">
@@ -787,6 +814,7 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
+                )}
               </>
             )}
           </>
