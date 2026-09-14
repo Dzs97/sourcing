@@ -67,6 +67,34 @@ export default function Home() {
   // Archive collapse state — collapsed by default to keep main view clean
   const [archiveOpen, setArchiveOpen] = useState(false);
 
+  // Theme — three states so users can override OS.
+  // "system": no data-theme attribute → OS preference wins via @media
+  // "light" / "dark": explicit override, stamped as data-theme on <html>
+  const [theme, setTheme] = useState<"system" | "light" | "dark">("system");
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const saved = window.localStorage.getItem("theme");
+      if (saved === "light" || saved === "dark" || saved === "system") {
+        setTheme(saved);
+      }
+    } catch {}
+  }, []);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const root = document.documentElement;
+    if (theme === "system") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", theme);
+    try {
+      window.localStorage.setItem("theme", theme);
+    } catch {}
+  }, [theme]);
+  function cycleTheme() {
+    setTheme((t) => (t === "system" ? "light" : t === "light" ? "dark" : "system"));
+  }
+  const themeIcon = theme === "light" ? "☀" : theme === "dark" ? "☾" : "◐";
+  const themeLabel = theme === "light" ? "Light" : theme === "dark" ? "Dark" : "Auto";
+
   // Tertiary-tier collapse state — persisted per-viewer in localStorage so
   // the choice survives reloads. Default collapsed since tertiary is
   // by definition low-priority.
@@ -540,6 +568,14 @@ export default function Home() {
               <strong>{counts.blacklisted}</strong> blacklisted
             </span>
           </div>
+          <button
+            className="masthead-theme"
+            onClick={cycleTheme}
+            title={`Theme: ${themeLabel} — click to cycle (auto → light → dark)`}
+            aria-label={`Theme: ${themeLabel}`}
+          >
+            <span aria-hidden="true">{themeIcon}</span>
+          </button>
           <button
             className="masthead-action"
             onClick={openHistoryModal}

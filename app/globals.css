@@ -1,3 +1,10 @@
+/* Theme color scheme — respected by system UI + form controls */
+html { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) { color-scheme: dark; }
+}
+
 :root {
   /* Light surface palette */
   --bg: #f9f9fa;
@@ -74,6 +81,131 @@
   --shadow-md: 0 2px 8px rgba(17, 18, 18, 0.06);
   --shadow-lg: 0 8px 32px rgba(17, 18, 18, 0.12);
   --shadow-card: 0 1px 3px rgba(17, 18, 18, 0.04), 0 1px 2px rgba(17, 18, 18, 0.02);
+}
+
+/* ─────────────────── Dark palette ───────────────────
+   Applies via two mirrored rule blocks so both trigger:
+   1. Manual toggle: :root[data-theme="dark"]
+   2. OS preference: @media (prefers-color-scheme: dark) when the
+      user hasn't manually chosen light.
+   The tokens are the same in both — CSS doesn't let you share the
+   body across a bare selector and an @media, so we duplicate.
+   ─────────────────────────────────────────────────── */
+
+:root[data-theme="dark"] {
+  --bg: #0a0d0c;
+  --surface: #141817;
+  --surface-2: #1c2120;
+  --border: #262b29;
+  --border-strong: #363c39;
+
+  --ink: #0f1211;
+  --ink-2: #1a1e1c;
+  --ink-text: #f0f3ed;
+  --ink-text-soft: rgba(255, 255, 255, 0.72);
+  --ink-text-fade: rgba(255, 255, 255, 0.52);
+  --ink-divider: rgba(255, 255, 255, 0.09);
+  --ink-glass: rgba(255, 255, 255, 0.04);
+
+  --text: #e8ece7;
+  --text-soft: #b8bfbb;
+  --text-fade: #8a938f;
+  --text-mute: #5c6560;
+
+  --accent: #2fe79a;
+  --accent-hover: #58f0b1;
+  --accent-soft: rgba(47, 231, 154, 0.13);
+  --accent-text: #b8f5d8;
+
+  --status-targeting: #2fe79a;
+  --status-tried: #5c6560;
+  --status-new: #b8bfbb;
+  --status-blacklisted: #ff6c6c;
+
+  --d-frontier: rgba(140, 111, 255, 0.16);
+  --d-frontier-text: #b8a1ff;
+  --d-health: rgba(229, 105, 132, 0.14);
+  --d-health-text: #f5a1b2;
+  --d-defense: rgba(220, 195, 88, 0.14);
+  --d-defense-text: #f0dc8a;
+  --d-infra: rgba(88, 178, 220, 0.14);
+  --d-infra-text: #90cfe8;
+  --d-bio: rgba(78, 200, 150, 0.14);
+  --d-bio-text: #a2e8c8;
+  --d-insurtech: rgba(232, 138, 88, 0.14);
+  --d-insurtech-text: #f5b58e;
+  --d-fintech: rgba(140, 111, 255, 0.16);
+  --d-fintech-text: #b8a1ff;
+  --d-school: rgba(255, 255, 255, 0.06);
+  --d-school-text: #b8bfbb;
+  --d-portco: rgba(232, 138, 88, 0.14);
+  --d-portco-text: #f5b58e;
+  --d-other: rgba(255, 255, 255, 0.06);
+  --d-other-text: #b8bfbb;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a0d0c;
+    --surface: #141817;
+    --surface-2: #1c2120;
+    --border: #262b29;
+    --border-strong: #363c39;
+
+    --ink: #0f1211;
+    --ink-2: #1a1e1c;
+    --ink-text: #f0f3ed;
+    --ink-text-soft: rgba(255, 255, 255, 0.72);
+    --ink-text-fade: rgba(255, 255, 255, 0.52);
+    --ink-divider: rgba(255, 255, 255, 0.09);
+    --ink-glass: rgba(255, 255, 255, 0.04);
+
+    --text: #e8ece7;
+    --text-soft: #b8bfbb;
+    --text-fade: #8a938f;
+    --text-mute: #5c6560;
+
+    --accent: #2fe79a;
+    --accent-hover: #58f0b1;
+    --accent-soft: rgba(47, 231, 154, 0.13);
+    --accent-text: #b8f5d8;
+
+    --status-targeting: #2fe79a;
+    --status-tried: #5c6560;
+    --status-new: #b8bfbb;
+    --status-blacklisted: #ff6c6c;
+
+    --d-frontier: rgba(140, 111, 255, 0.16);
+    --d-frontier-text: #b8a1ff;
+    --d-health: rgba(229, 105, 132, 0.14);
+    --d-health-text: #f5a1b2;
+    --d-defense: rgba(220, 195, 88, 0.14);
+    --d-defense-text: #f0dc8a;
+    --d-infra: rgba(88, 178, 220, 0.14);
+    --d-infra-text: #90cfe8;
+    --d-bio: rgba(78, 200, 150, 0.14);
+    --d-bio-text: #a2e8c8;
+    --d-insurtech: rgba(232, 138, 88, 0.14);
+    --d-insurtech-text: #f5b58e;
+    --d-fintech: rgba(140, 111, 255, 0.16);
+    --d-fintech-text: #b8a1ff;
+    --d-school: rgba(255, 255, 255, 0.06);
+    --d-school-text: #b8bfbb;
+    --d-portco: rgba(232, 138, 88, 0.14);
+    --d-portco-text: #f5b58e;
+    --d-other: rgba(255, 255, 255, 0.06);
+    --d-other-text: #b8bfbb;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.55);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.25);
+  }
 }
 
 * {
@@ -3556,4 +3688,59 @@ select.filter-chip {
   background: var(--text);
   color: var(--ink-text);
   border-color: var(--text);
+}
+
+/* Theme toggle button — cycle Auto → Light → Dark. Sits next to
+   History & export in the masthead. Icon-only to keep it quiet. */
+.masthead-theme {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text-soft);
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 100ms, color 100ms, background 100ms;
+}
+.masthead-theme:hover {
+  border-color: var(--text-fade);
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+/* Small readability polishes in dark mode where necessary. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body { background: var(--bg); }
+  :root:not([data-theme="light"]) .masthead-title::before {
+    box-shadow: 0 0 0 3px rgba(47, 231, 154, 0.18);
+  }
+  :root:not([data-theme="light"]) .handoff-warn {
+    background: rgba(240,217,123,0.10);
+    border-color: rgba(240,217,123,0.32);
+    color: #f0d97b;
+  }
+  :root:not([data-theme="light"]) .handoff-error {
+    background: rgba(245,170,162,0.10);
+    border-color: rgba(245,170,162,0.32);
+    color: #f5aaa2;
+  }
+}
+:root[data-theme="dark"] body { background: var(--bg); }
+:root[data-theme="dark"] .masthead-title::before {
+  box-shadow: 0 0 0 3px rgba(47, 231, 154, 0.18);
+}
+:root[data-theme="dark"] .handoff-warn {
+  background: rgba(240,217,123,0.10);
+  border-color: rgba(240,217,123,0.32);
+  color: #f0d97b;
+}
+:root[data-theme="dark"] .handoff-error {
+  background: rgba(245,170,162,0.10);
+  border-color: rgba(245,170,162,0.32);
+  color: #f5aaa2;
 }
