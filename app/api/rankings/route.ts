@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRankings, saveRankings, clearRankings } from "@/lib/rankings-storage";
 import { parseRankingsWorkbook } from "@/lib/rankings-parser";
+import { backfillMissingRankedEntries } from "@/lib/rankings-backfill";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -60,6 +61,11 @@ export async function POST(req: NextRequest) {
 
   await saveRankings(bundle);
 
+  // Auto-backfill: any ranked company with ≥5 votes that isn't in the
+  // tracker gets added as status=tried. Prevents the Home queue from
+  // surfacing companies that have calibration data but no tracker entry.
+  const backfill = await backfillMissingRankedEntries(bundle);
+
   return NextResponse.json({
     ok: true,
     summary: {
@@ -67,6 +73,7 @@ export async function POST(req: NextRequest) {
       recency_count: bundle.recency.length,
       source_as_of: bundle.source_as_of,
       uploaded_at: bundle.uploaded_at,
+      backfilled: backfill.added,
     },
   });
 }
