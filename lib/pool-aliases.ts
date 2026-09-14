@@ -55,6 +55,14 @@ export const POOL_ALIASES: Record<string, string> = {
   "University of Illinois Urbana-Champaign": "UIUC",
   "New York University": "NYU",
 
+  // ── Fellowships (singular / plural / variants → canonical) ──
+  "KP Fellow": "KP Fellows",
+  "Accel Scholar": "Accel Scholars",
+  "Accel Fellow": "Accel Scholars",
+  "Neo Fellow": "Neo Fellows",
+  "Thiel Fellow": "Thiel Fellows",
+  "8VC Fellow": "8VC Fellows",
+
   // ── Research labs (long official names → short handle) ──────
   "Stanford Artificial Intelligence Laboratory (SAIL)": "SAIL",
   "Berkeley Artificial Intelligence Research": "BAIR",
