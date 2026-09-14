@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Entry } from "@/lib/types";
 import type { RankingsBundle } from "@/lib/rankings-types";
 import { fuzzyName } from "@/lib/name-normalize";
+import { canonicalPoolName } from "@/lib/pool-aliases";
 
 type MainTab = "home" | "tracker" | "rankings" | "matrix";
 
@@ -53,8 +54,12 @@ export default function HomePanel({ entries, onNavigate, onSearch }: Props) {
     };
   }, []);
 
+  // Match rankings to tracker via canonical-name-normalized keys, so
+  // "Anduril Industries" (rankings) matches "Anduril" (tracker), and
+  // "Deepmind" matches "Google DeepMind", etc.
   const trackedKeys = useMemo(
-    () => new Set(entries.map((e) => fuzzyName(e.name))),
+    () =>
+      new Set(entries.map((e) => fuzzyName(canonicalPoolName(e.name)))),
     [entries]
   );
 
@@ -62,7 +67,7 @@ export default function HomePanel({ entries, onNavigate, onSearch }: Props) {
     if (!bundle?.rankings) return [];
     return bundle.rankings
       .filter((r) => r.total_score > 0)
-      .filter((r) => !trackedKeys.has(fuzzyName(r.company)))
+      .filter((r) => !trackedKeys.has(fuzzyName(canonicalPoolName(r.company))))
       .slice(0, TOP_UNTRACKED_LIMIT);
   }, [bundle, trackedKeys]);
 

@@ -27,6 +27,7 @@ export const POOL_ALIASES: Record<string, string> = {
   "Reddit, Inc.": "Reddit",
   "Snap": "Snap Inc.",  // short-form → canonical
   "Anysphere": "Cursor",  // parent company → product name Diego sources under
+  "Microsoft AI": "Microsoft",  // Suleyman org rolls up under broader Microsoft entry
 
   // ── Universities — merge long/short forms ───────────────────
   "Massachusetts Institute of Technology": "MIT",
