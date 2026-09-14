@@ -3748,25 +3748,24 @@ select.filter-chip {
   color: #f5aaa2;
 }
 
-/* Home queue — "Mark tried" quick action next to each ranking item */
+/* Home queue — "Mark tried" quick action next to each ranking item.
+   Always visible (not hover-only) so it's discoverable. */
 .hq-list li {
-  gap: 8px;
+  gap: 10px;
 }
 .hq-list-action {
-  padding: 2px 8px;
-  font-size: 11px;
+  padding: 3px 10px;
+  font-size: 11.5px;
   font-family: var(--font-mono);
   letter-spacing: 0.02em;
   background: var(--surface);
   color: var(--text-fade);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
   cursor: pointer;
   transition: color 100ms, border-color 100ms, background 100ms;
   flex-shrink: 0;
-  opacity: 0;
 }
-.hq-list li:hover .hq-list-action { opacity: 1; }
 .hq-list-action:hover:not(:disabled) {
   color: var(--accent-hover);
   border-color: var(--accent);

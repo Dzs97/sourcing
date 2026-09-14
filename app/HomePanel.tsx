@@ -19,6 +19,25 @@ const STALE_DAYS = 30;
 const TOP_UNTRACKED_LIMIT = 6;
 const UNASSIGNED_LIMIT = 8;
 
+// Meaningful signal threshold — below this vote count, "high-ranked" is
+// noise. Anything under 5 votes only shows up if the sourcer wants to
+// grind through the tail; the Home queue stays curated.
+const MIN_VOTES_FOR_QUEUE = 5;
+
+// Noise filter — VC firms / programs / labels that show up in rankings
+// but aren't real target companies. Match the backfill set in
+// lib/rankings-backfill.ts.
+const SKIP_NAMES = new Set([
+  "Kleiner Perkins","Sutter Hill Ventures","Sequoia Capital","a16z",
+  "Andreessen Horowitz","Menlo","BCV","South Park Commons","-",
+  "Software Engineer","IVP","NEA","Neo","8VC","Khosla","Lightspeed",
+  "Coatue","Redpoint","Tiger","Chemistry","GC","GV","Battery",
+  "Insight","General Catalyst","Bessemer","Founders Fund","Iconiq",
+  "Accel","Contrary","Codepoint","Founding Engineer","Stealth",
+  "Stealth Startup","Stealth AI Startup",
+]);
+const SKIP_PATTERN = /\b(Capital|Partners|Ventures|Fund|Fellowship|Fellows)\b/i;
+
 function ownerOf(e: Entry): string | null {
   const m = /Owner:\s*([\p{L}][\p{L}\p{N} _.-]*)/u.exec(e.notes ?? "");
   return m ? m[1].trim() : null;
@@ -94,7 +113,9 @@ export default function HomePanel({ entries, onNavigate, onSearch, onEntriesChan
   const topUntracked = useMemo(() => {
     if (!bundle?.rankings) return [];
     return bundle.rankings
+      .filter((r) => r.total_votes >= MIN_VOTES_FOR_QUEUE)
       .filter((r) => r.total_score > 0)
+      .filter((r) => !SKIP_NAMES.has(r.company) && !SKIP_PATTERN.test(r.company))
       .filter((r) => !trackedKeys.has(fuzzyName(canonicalPoolName(r.company))))
       .filter((r) => !markedTried.has(r.company))
       .slice(0, TOP_UNTRACKED_LIMIT);
