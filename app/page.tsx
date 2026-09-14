@@ -626,6 +626,7 @@ export default function Home() {
           entries={entries}
           onNavigate={setMainTab}
           onSearch={setSearch}
+          onEntriesChange={loadEntries}
         />
       ) : mainTab === "pools" ? (
         <PoolsPanel />

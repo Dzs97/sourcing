@@ -3744,3 +3744,29 @@ select.filter-chip {
   border-color: rgba(245,170,162,0.32);
   color: #f5aaa2;
 }
+
+/* Home queue — "Mark tried" quick action next to each ranking item */
+.hq-list li {
+  gap: 8px;
+}
+.hq-list-action {
+  padding: 2px 8px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  background: var(--surface);
+  color: var(--text-fade);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 100ms, border-color 100ms, background 100ms;
+  flex-shrink: 0;
+  opacity: 0;
+}
+.hq-list li:hover .hq-list-action { opacity: 1; }
+.hq-list-action:hover:not(:disabled) {
+  color: var(--accent-hover);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.hq-list-action:disabled { opacity: 0.4; cursor: wait; }

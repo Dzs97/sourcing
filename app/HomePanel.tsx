@@ -12,6 +12,7 @@ interface Props {
   entries: Entry[];
   onNavigate: (tab: MainTab) => void;
   onSearch: (q: string) => void;
+  onEntriesChange: () => void;
 }
 
 const STALE_DAYS = 30;
@@ -28,7 +29,34 @@ function daysAgo(ms?: number): number | null {
   return Math.floor((Date.now() - ms) / (1000 * 60 * 60 * 24));
 }
 
-export default function HomePanel({ entries, onNavigate, onSearch }: Props) {
+export default function HomePanel({ entries, onNavigate, onSearch, onEntriesChange }: Props) {
+  // Track which rankings have been "marked tried" this session so the
+  // card can drop them immediately (before entries refetch lands).
+  const [markedTried, setMarkedTried] = useState<Set<string>>(new Set());
+  const [markBusy, setMarkBusy] = useState<string | null>(null);
+
+  async function markAsTried(companyName: string) {
+    setMarkBusy(companyName);
+    try {
+      const res = await fetch("/api/pools", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: companyName,
+          type: "company",
+          domain: "other",
+          status: "tried",
+          notes: `Marked tried from Home queue`,
+        }),
+      });
+      if (res.ok) {
+        setMarkedTried((s) => new Set(s).add(companyName));
+        onEntriesChange();
+      }
+    } finally {
+      setMarkBusy(null);
+    }
+  }
   const [bundle, setBundle] = useState<RankingsBundle | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -68,8 +96,9 @@ export default function HomePanel({ entries, onNavigate, onSearch }: Props) {
     return bundle.rankings
       .filter((r) => r.total_score > 0)
       .filter((r) => !trackedKeys.has(fuzzyName(canonicalPoolName(r.company))))
+      .filter((r) => !markedTried.has(r.company))
       .slice(0, TOP_UNTRACKED_LIMIT);
-  }, [bundle, trackedKeys]);
+  }, [bundle, trackedKeys, markedTried]);
 
   const unassignedTargeting = useMemo(() => {
     return entries
@@ -190,6 +219,14 @@ export default function HomePanel({ entries, onNavigate, onSearch }: Props) {
                       <span className="hq-list-meta">
                         score {r.total_score.toFixed(1)} · {r.total_votes} votes
                       </span>
+                      <button
+                        className="hq-list-action"
+                        onClick={() => markAsTried(r.company)}
+                        disabled={markBusy === r.company}
+                        title="Mark as tried — creates a tracker entry and drops from this queue"
+                      >
+                        {markBusy === r.company ? "…" : "✓ Tried"}
+                      </button>
                     </li>
                   ))}
                 </ul>
