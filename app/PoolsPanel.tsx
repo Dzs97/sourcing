@@ -426,7 +426,7 @@ export default function PoolsPanel() {
                       Similar to <b>{s.similarTo}</b>
                     </div>
                   )}
-                  <div className="pools-rec-cta">Draft prompt →</div>
+                  <div className="pools-rec-cta">Draft sourcing prompt <span aria-hidden="true">→</span></div>
                 </button>
               ))}
             </div>

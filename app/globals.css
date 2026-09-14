@@ -316,10 +316,13 @@ textarea {
   font-weight: 500;
 }
 
+/* Items within an owner group: multi-column when the group is wide.
+   auto-fill with a min column width means it stays 1-column at 240px
+   and grows to 2/3/4 columns as horizontal space appears. */
 .targeting-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 2px 16px;
 }
 
 .targeting-item {
@@ -3241,23 +3244,25 @@ select.filter-chip {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
-  padding: 14px 14px 12px;
+  gap: 4px;
+  padding: 16px 16px 14px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  transition: transform 100ms, box-shadow 120ms, border-color 100ms;
+  transition: transform 140ms, box-shadow 160ms, border-color 140ms;
   position: relative;
+  min-height: 156px;
 }
 
 .pools-rec-card:hover {
   border-color: var(--accent);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px -8px rgba(4, 215, 127, 0.35), var(--shadow-card);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px -10px rgba(4, 215, 127, 0.35), var(--shadow-md);
 }
+.pools-rec-card:active { transform: translateY(0); }
 
 .pools-rec-rank {
   position: absolute;
@@ -3270,21 +3275,23 @@ select.filter-chip {
 }
 
 .pools-rec-name {
-  font-size: 14.5px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--text);
-  letter-spacing: -0.01em;
-  line-height: 1.2;
-  padding-right: 26px;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  padding-right: 28px;
+  margin-top: 2px;
 }
 
 .pools-rec-cat {
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.06em;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
   color: var(--accent-hover);
   text-transform: uppercase;
-  margin-top: -2px;
+  margin-top: 0;
+  font-weight: 500;
 }
 
 .pools-rec-metrics {
@@ -3318,21 +3325,26 @@ select.filter-chip {
 }
 
 .pools-rec-why {
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--text-soft);
-  line-height: 1.4;
-  margin-top: 6px;
+  line-height: 1.45;
+  margin-top: 10px;
+  flex: 1;
 }
 
 .pools-rec-cta {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.04em;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  letter-spacing: 0;
   color: var(--accent-hover);
-  margin-top: 4px;
-  font-weight: 500;
-  transition: color 100ms;
+  margin-top: 10px;
+  font-weight: 600;
+  transition: color 100ms, transform 100ms;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
+.pools-rec-card:hover .pools-rec-cta { transform: translateX(2px); }
 
 .pools-rec-card:hover .pools-rec-cta { color: var(--accent-text); }
 
@@ -3413,14 +3425,19 @@ select.filter-chip {
 .pools-rec-card-ai::before {
   content: "✦";
   position: absolute;
-  top: 10px;
-  left: 12px;
-  font-size: 11px;
+  top: 12px;
+  left: 14px;
+  font-size: 13px;
   color: var(--accent-hover);
-  opacity: 0.7;
+  opacity: 0.85;
+  transition: transform 300ms, opacity 200ms;
 }
-.pools-rec-card-ai .pools-rec-name { padding-left: 16px; }
-.pools-rec-card-ai .pools-rec-cat { padding-left: 16px; }
+.pools-rec-card-ai:hover::before {
+  opacity: 1;
+  transform: rotate(180deg) scale(1.15);
+}
+.pools-rec-card-ai .pools-rec-name { padding-left: 20px; }
+.pools-rec-card-ai .pools-rec-cat { padding-left: 20px; }
 
 /* Coverage % cell in Pools table — quieter tone for very-thin coverage */
 .pools-cov-thin { color: var(--text-fade); }
@@ -3477,3 +3494,66 @@ select.filter-chip {
 
 /* Coverage cell uses stronger primary text (accent green for good coverage) */
 .pools-coverage-cell { font-variant-numeric: tabular-nums; }
+
+/* Featured-compact — the light utility variant of the dark hero.
+   Used on Rankings (now a secondary tab) so it doesn't shout the way
+   the primary Tracker hero does. Same info, ~40% less real estate. */
+.featured.featured-compact {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 18px 20px;
+  min-height: 0;
+  box-shadow: var(--shadow-card);
+}
+.featured.featured-compact::before,
+.featured.featured-compact::after { content: none; }
+.featured.featured-compact .featured-eyebrow {
+  color: var(--text-fade);
+}
+.featured.featured-compact .featured-eyebrow::before {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(4, 215, 127, 0.15);
+}
+.featured.featured-compact .featured-stat-num {
+  color: var(--text);
+  font-size: 36px;
+  font-weight: 600;
+}
+.featured.featured-compact .featured-stat-label {
+  color: var(--text-soft);
+}
+.featured.featured-compact .featured-sub {
+  color: var(--text-fade);
+}
+.featured.featured-compact .rankings-action-btn {
+  background: var(--surface);
+  color: var(--text-soft);
+  border: 1px solid var(--border-strong);
+}
+.featured.featured-compact .rankings-action-btn:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--text-fade);
+}
+.featured.featured-compact .rankings-action-btn.rankings-action-danger:hover:not(:disabled) {
+  color: var(--status-blacklisted);
+  border-color: var(--status-blacklisted);
+}
+.featured.featured-compact .generate-btn {
+  background: var(--accent);
+  color: #0A1512;
+  border: none;
+}
+
+/* Rankings sub-tabs — sit under a light hero now, so light-appropriate */
+.featured.featured-compact + * .rankings-subtabs .rankings-subtab {
+  background: transparent;
+  color: var(--text-soft);
+  border: 1px solid var(--border-strong);
+}
+.featured.featured-compact + * .rankings-subtabs .rankings-subtab.active {
+  background: var(--text);
+  color: var(--ink-text);
+  border-color: var(--text);
+}

@@ -303,7 +303,7 @@ export default function RankingsPanel({ entries, onPromote, onHandoff }: Ranking
   if (!bundle) {
     return (
       <>
-        <section className="featured">
+        <section className="featured featured-compact">
           <div className="featured-head">
             <div>
               <div className="featured-eyebrow">RANKINGS</div>
