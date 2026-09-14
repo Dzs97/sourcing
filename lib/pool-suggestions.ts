@@ -51,16 +51,16 @@ export const SEED_SUGGESTIONS: PoolSuggestion[] = [
     similarTo: "Midjourney",
   },
   {
-    name: "Nscale",
-    category: "data-infra",
-    why: "European GPU cloud for training and inference; extends Modal into raw compute infra territory.",
-    similarTo: "Modal",
+    name: "Manus",
+    category: "ai-startup",
+    why: "Autonomous multi-step AI agents; extends your Decagon/Sierra coverage into general-purpose agent work.",
+    similarTo: "Decagon",
   },
   {
-    name: "Positron AI",
-    category: "data-infra",
-    why: "Custom AI inference chips from ex-Google TPU team; extends chip-talent access beyond Cerebras.",
-    similarTo: "Etched",
+    name: "Answer AI",
+    category: "ai-startup",
+    why: "Jeremy Howard's fast.ai lab spinout building ML products; small elite research crew adjacent to Anthropic caliber.",
+    similarTo: "Anthropic",
   },
 ];
 
