@@ -1556,14 +1556,16 @@ select.filter-chip {
 
 .targeting-tier-label-tertiary {
   margin-top: 32px;
-  color: rgba(255, 255, 255, 0.32);
-  font-style: italic;
+  color: rgba(255, 255, 255, 0.65);
+  font-style: normal;
+  font-weight: 500;
 }
+.targeting-tier-label-tertiary:hover { color: rgba(255, 255, 255, 0.9); }
 
 .targeting-tier-count {
-  font-size: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 2px 8px;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.14);
+  padding: 3px 9px;
   border-radius: 999px;
   color: rgba(255, 255, 255, 0.7);
 }
@@ -3437,23 +3439,25 @@ select.filter-chip {
   background: none;
   border: none;
   padding: 8px 0;
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-  letter-spacing: inherit;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
   text-align: left;
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  transition: color 100ms;
 }
-.tertiary-toggle:hover .tertiary-caret { color: var(--accent-hover); }
+.tertiary-toggle:hover .tertiary-caret { color: rgba(255,255,255,0.95); }
 .tertiary-caret {
   display: inline-block;
-  width: 14px;
-  color: var(--text-fade);
+  width: 12px;
+  color: rgba(255,255,255,0.6);
   font-family: var(--font-mono);
+  font-size: 13px;
   transition: color 100ms;
 }
 
