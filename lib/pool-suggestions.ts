@@ -33,34 +33,34 @@ export interface SuggestionsBundle {
  */
 export const SEED_SUGGESTIONS: PoolSuggestion[] = [
   {
-    name: "Poolside",
+    name: "Cresta",
     category: "ai-startup",
-    why: "Ex-GitHub Copilot + DeepMind team building AI coding models; caliber matches Cursor's hires.",
-    similarTo: "Cursor",
+    why: "Enterprise AI agents for CX; extends your Decagon/Sierra coverage into the phone-support layer.",
+    similarTo: "Decagon",
   },
   {
-    name: "Fal.ai",
-    category: "data-infra",
-    why: "Real-time image/video model inference platform; a16z-backed, hiring elite systems engineers.",
-    similarTo: "Fireworks AI",
+    name: "Bland AI",
+    category: "ai-startup",
+    why: "Real-time voice AI infrastructure for phone agents; adjacent to Cartesia, Sequoia-backed.",
+    similarTo: "Cartesia",
   },
   {
-    name: "Rain AI",
+    name: "Krea",
+    category: "ai-startup",
+    why: "Real-time creative AI for image + video; adjacent to Midjourney with an ex-Adobe/Google design crew.",
+    similarTo: "Midjourney",
+  },
+  {
+    name: "Nscale",
     category: "data-infra",
-    why: "Neuromorphic AI chip startup with ex-Google TPU talent; adjacent to your Etched/Cerebras exposure.",
+    why: "European GPU cloud for training and inference; extends Modal into raw compute infra territory.",
+    similarTo: "Modal",
+  },
+  {
+    name: "Positron AI",
+    category: "data-infra",
+    why: "Custom AI inference chips from ex-Google TPU team; extends chip-talent access beyond Cerebras.",
     similarTo: "Etched",
-  },
-  {
-    name: "Formation Bio",
-    category: "healthtech",
-    why: "AI-native drug discovery; extends bio-AI coverage that's still thin in your pool set.",
-    similarTo: "Recursion",
-  },
-  {
-    name: "Marimo",
-    category: "devtools",
-    why: "Python-native reactive notebook, ex-Google Brain founders; hires ML infra engineers with taste.",
-    similarTo: "Vercel",
   },
 ];
 
