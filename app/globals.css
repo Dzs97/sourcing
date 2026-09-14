@@ -3,8 +3,8 @@
   --bg: #f9f9fa;
   --surface: #ffffff;
   --surface-2: #f2f2f5;
-  --border: #eaeaeb;
-  --border-strong: #dddddf;
+  --border: #e5e6e7;
+  --border-strong: #c9cccc;
 
   /* Dark featured block */
   --ink: #111212;
@@ -15,10 +15,13 @@
   --ink-divider: rgba(255, 255, 255, 0.1);
   --ink-glass: rgba(255, 255, 255, 0.05);
 
-  /* Text on light */
+  /* Text on light — bumped for legibility.
+     text-soft: was #4a4c4d, deepened for stronger secondary contrast
+     text-fade: was #8a8c8e, deepened so muted text stays readable */
   --text: #111212;
-  --text-soft: #4a4c4d;
-  --text-fade: #8a8c8e;
+  --text-soft: #2f3634;
+  --text-fade: #5f6b67;
+  --text-mute: #8a9490;  /* only for truly ambient/decorative text */
 
   /* Accent — vivid green from the Claude Design export */
   --accent: #04d77f;
@@ -84,8 +87,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -128,9 +131,9 @@ textarea {
 }
 
 .masthead-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   color: var(--text);
   display: flex;
   align-items: center;
@@ -147,17 +150,19 @@ textarea {
 }
 
 .masthead-meta {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-fade);
   text-align: right;
   display: flex;
-  gap: 12px;
+  gap: 18px;
+  font-variant-numeric: tabular-nums;
 }
 
 .masthead-meta-item strong {
   color: var(--text);
   font-weight: 600;
+  font-size: 14px;
+  margin-right: 3px;
 }
 
 /* FEATURED DARK BLOCK — current targets */
@@ -1624,54 +1629,25 @@ select.filter-chip {
    so the section colors read as part of the same design system. Glow
    lives ENTIRELY OUTSIDE the card so it never competes with chip
    readability inside. */
+/* Matrix per-function accent — a subtle 3px top border in the function's
+   color, instead of the heavy halo/glow. The color still communicates
+   which section you're in without visually shouting. */
 .matrix-function {
   position: relative;
   isolation: isolate;
-  box-shadow:
-    0 0 0 1px var(--border),
-    0 0 32px 4px var(--glow-shadow, transparent),
-    0 0 64px 8px var(--glow-shadow-far, transparent);
+  border-top: 3px solid var(--fn-accent, var(--border-strong));
 }
-.matrix-function::after {
-  content: "";
-  position: absolute;
-  inset: -40px;
-  border-radius: 28px;
-  background: radial-gradient(
-    60% 55% at 50% 50%,
-    var(--glow-halo, transparent),
-    transparent 70%
-  );
-  pointer-events: none;
-  z-index: -1;
-  opacity: 1;
-  filter: blur(8px);
-}
+.matrix-function::after { content: none; }
 
-.matrix-function[data-function="finance"] {
-  --glow-halo: rgba(91,63,214,0.35);
-  --glow-shadow: rgba(91,63,214,0.55);
-  --glow-shadow-far: rgba(91,63,214,0.22);
-}
-.matrix-function[data-function="legal"] {
-  --glow-halo: rgba(181,74,31,0.32);
-  --glow-shadow: rgba(181,74,31,0.5);
-  --glow-shadow-far: rgba(181,74,31,0.20);
-}
-.matrix-function[data-function="engineering"] {
-  --glow-halo: rgba(10,110,156,0.32);
-  --glow-shadow: rgba(10,110,156,0.5);
-  --glow-shadow-far: rgba(10,110,156,0.20);
-}
-.matrix-function[data-function="design"] {
-  --glow-halo: rgba(200,52,92,0.30);
-  --glow-shadow: rgba(200,52,92,0.48);
-  --glow-shadow-far: rgba(200,52,92,0.20);
-}
-.matrix-function[data-function="growth"] {
-  --glow-halo: rgba(4,215,127,0.28);
-  --glow-shadow: rgba(4,180,110,0.5);
-  --glow-shadow-far: rgba(4,180,110,0.20);
+.matrix-function[data-function="finance"] { --fn-accent: #5b3fd6; }
+.matrix-function[data-function="legal"] { --fn-accent: #b54a1f; }
+.matrix-function[data-function="engineering"] { --fn-accent: #0a6e9c; }
+.matrix-function[data-function="design"] { --fn-accent: #c8345c; }
+.matrix-function[data-function="growth"] { --fn-accent: #04b46e;
+  /* legacy tokens kept so downstream selectors don't error */
+  --glow-halo: transparent;
+  --glow-shadow: transparent;
+  --glow-shadow-far: transparent;
 }
 .matrix-function[data-function="ops"] {
   --glow-halo: rgba(214,175,20,0.32);
@@ -3130,14 +3106,14 @@ select.filter-chip {
 .pools-source-chip {
   display: inline-block;
   margin-left: 6px;
-  padding: 1px 5px;
+  padding: 2px 6px;
   font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.06em;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
   color: var(--text-fade);
   background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: 3px;
+  border-radius: 4px;
   vertical-align: middle;
 }
 
@@ -3179,7 +3155,7 @@ select.filter-chip {
   background: var(--accent-soft);
 }
 .pools-cov-cat {
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.005em;
@@ -3187,7 +3163,7 @@ select.filter-chip {
 .pools-cov-tile.active .pools-cov-cat { color: var(--accent-text); }
 .pools-cov-nums {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--text-fade);
   font-variant-numeric: tabular-nums;
 }
@@ -3451,8 +3427,9 @@ select.filter-chip {
 .pools-cov-est {
   color: var(--text-fade);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 400;
+  margin-left: 2px;
 }
 
 /* Tertiary section — collapsible toggle */
@@ -3479,3 +3456,20 @@ select.filter-chip {
   font-family: var(--font-mono);
   transition: color 100ms;
 }
+
+/* Secondary tabs — de-emphasized (Rankings is now a utility tab; the
+   day-to-day calibration read lives in Pools). */
+.main-tab-secondary {
+  opacity: 0.55;
+  font-weight: 400;
+  margin-left: auto;
+}
+.main-tab-secondary.active { opacity: 1; font-weight: 500; }
+
+/* Pool table — a bit more headroom + better cell text sizing */
+.pools-table th, .pools-table td { padding: 12px 14px; }
+.pools-table td { font-size: 14px; }
+.pools-tag-btn { font-size: 15px; }
+
+/* Coverage cell uses stronger primary text (accent green for good coverage) */
+.pools-coverage-cell { font-variant-numeric: tabular-nums; }

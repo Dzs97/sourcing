@@ -571,16 +571,17 @@ export default function Home() {
           Tracker
         </button>
         <button
-          className={`main-tab ${mainTab === "rankings" ? "active" : ""}`}
-          onClick={() => setMainTab("rankings")}
-        >
-          Rankings
-        </button>
-        <button
           className={`main-tab ${mainTab === "matrix" ? "active" : ""}`}
           onClick={() => setMainTab("matrix")}
         >
           Matrix
+        </button>
+        <button
+          className={`main-tab main-tab-secondary ${mainTab === "rankings" ? "active" : ""}`}
+          onClick={() => setMainTab("rankings")}
+          title="Calibration data — usually accessed through Pools now"
+        >
+          Rankings
         </button>
       </div>
 
